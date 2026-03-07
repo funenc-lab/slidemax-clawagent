@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+
+required_files=(
+  "AGENTS.md"
+  "SOUL.md"
+  "TOOLS.md"
+  "USER.md"
+  "IDENTITY.md"
+  "HEARTBEAT.md"
+  "README.md"
+  "scripts/install_openclaw_agent.sh"
+  "scripts/validate_workspace.sh"
+  "skills/presentation-workflow/SKILL.md"
+  "skills/ppt-generation/SKILL.md"
+  "skills/ppt-review/SKILL.md"
+  "skills/speaker-notes/SKILL.md"
+  "skills/deck-polish/SKILL.md"
+  "docs/openclaw-install.md"
+)
+
+for relative_path in "${required_files[@]}"; do
+  if [[ ! -f "$ROOT_DIR/$relative_path" ]]; then
+    echo "Missing required file: $relative_path" >&2
+    exit 1
+  fi
+done
+
+if grep -Eq '^HEARTBEAT\.md$' "$ROOT_DIR/.gitignore"; then
+  echo 'HEARTBEAT.md should be committed to the workspace repository.' >&2
+  exit 1
+fi
+
+heartbeat_size=$(wc -c < "$ROOT_DIR/HEARTBEAT.md" | tr -d ' ')
+if [[ "$heartbeat_size" -gt 800 ]]; then
+  echo 'HEARTBEAT.md should stay tiny to avoid prompt bloat.' >&2
+  exit 1
+fi
+
+if ! grep -q 'openclaw agents add' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
+  echo 'Install script must register the workspace with OpenClaw.' >&2
+  exit 1
+fi
+
+for skill_name in 'presentation-workflow' 'ppt-generation' 'ppt-review' 'speaker-notes' 'deck-polish'; do
+  if ! grep -q "$skill_name" "$ROOT_DIR/AGENTS.md"; then
+    echo "AGENTS.md must reference skill: $skill_name" >&2
+    exit 1
+  fi
+done
+
+if ! grep -q 'HEARTBEAT_OK' "$ROOT_DIR/AGENTS.md"; then
+  echo 'AGENTS.md should define heartbeat reply behavior.' >&2
+  exit 1
+fi
+
+if ! grep -q 'HEARTBEAT.md' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should explain HEARTBEAT.md.' >&2
+  exit 1
+fi
+
+if ! grep -q 'ppt-review' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should explain the advanced PPT skills.' >&2
+  exit 1
+fi
+
+echo 'Workspace structure test passed.'
