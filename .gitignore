@@ -1,2 +1,4 @@
 .openclaw/
 .DS_Store
+# Generated presentation outputs
+outputs/

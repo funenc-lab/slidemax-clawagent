@@ -36,6 +36,25 @@ Use when the structure is mostly correct but the wording, flow, or emphasis is w
 
 Use when notes, documents, meeting records, or plans must become presentation material.
 
+## Progress Reporting
+
+For multi-step presentation work, report progress after each major stage.
+
+Recommended progress milestones:
+
+- framing complete
+- narrative spine complete
+- slide blueprint complete
+- review or rewrite findings complete
+- final packaging complete
+
+Each progress update should briefly include:
+
+- completed stage
+- current focus
+- next step
+- blocker, if any
+
 ## Process
 
 ### 1. Frame the job

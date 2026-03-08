@@ -25,6 +25,25 @@ Identify or infer:
 
 State assumptions explicitly when inputs are incomplete.
 
+## Progress Reporting
+
+When generation takes multiple steps, provide progress checkpoints.
+
+Preferred checkpoints:
+
+- requirements captured
+- narrative shape selected
+- message ladder drafted
+- slide blueprint drafted
+- final recommendations prepared
+
+Each progress update should state:
+
+- what is complete
+- what is in progress
+- what will be done next
+- whether any missing input blocks quality
+
 ## Generation Workflow
 
 ### 1. Define the narrative shape

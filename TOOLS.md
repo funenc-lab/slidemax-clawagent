@@ -17,6 +17,19 @@ When building or reviewing presentation material:
 4. Produce speaker notes when delivery or persuasion matters.
 5. End with concrete decisions, asks, owners, or next actions.
 
+## Progress Checkpoints
+
+For multi-step PPT tasks, emit progress updates at meaningful milestones instead of waiting until the very end.
+
+A useful progress update should state:
+
+- what is already done
+- what is being worked on now
+- what comes next
+- whether any blocker exists
+
+Prefer short and high-signal updates rather than verbose status narration.
+
 ## Review Rubric
 
 For reviews and rewrites, assess:
@@ -41,3 +54,10 @@ For reviews and rewrites, assess:
 - Use tables when comparing options, risks, or slide plans.
 - Make implicit assumptions explicit.
 - Call out missing inputs before overcommitting to specifics.
+
+## Output Directory Rules
+
+- When saving reusable artifacts, write them under `outputs/` with a category subdirectory.
+- Prefer one task folder per run: `outputs/<category>/YYYY-MM-DD-topic-slug/`.
+- Use `outputs/tmp/` only for disposable scratch files.
+- Avoid writing generated deliverables under `docs/`, `scripts/`, or `skills/` unless the task is explicitly a documentation or code change.

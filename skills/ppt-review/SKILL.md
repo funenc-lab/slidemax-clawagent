@@ -23,6 +23,25 @@ Assess the following dimensions:
 - recommendation clarity
 - delivery readiness
 
+## Progress Reporting
+
+For longer review tasks, report progress as the review advances.
+
+Recommended milestones:
+
+- review context understood
+- top-level diagnostic complete
+- slide-level issues consolidated
+- rewrite recommendations drafted
+- final verdict packaged
+
+Each progress update should include:
+
+- completed review stage
+- active review focus
+- next review action
+- blocker or missing context, if any
+
 ## Review Workflow
 
 ### 1. Identify context

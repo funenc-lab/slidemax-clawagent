@@ -56,6 +56,21 @@ if ! grep -q 'HEARTBEAT_OK' "$ROOT_DIR/AGENTS.md"; then
   exit 1
 fi
 
+if ! grep -qi 'progress' "$ROOT_DIR/AGENTS.md"; then
+  echo 'AGENTS.md should define progress reporting behavior for PPT work.' >&2
+  exit 1
+fi
+
+for skill_file in \
+  "$ROOT_DIR/skills/presentation-workflow/SKILL.md" \
+  "$ROOT_DIR/skills/ppt-generation/SKILL.md" \
+  "$ROOT_DIR/skills/ppt-review/SKILL.md"; do
+  if ! grep -qi 'progress' "$skill_file"; then
+    echo "Skill missing progress-reporting guidance: $skill_file" >&2
+    exit 1
+  fi
+done
+
 if ! grep -q 'HEARTBEAT.md' "$ROOT_DIR/docs/openclaw-install.md"; then
   echo 'Install docs should explain HEARTBEAT.md.' >&2
   exit 1
@@ -63,6 +78,41 @@ fi
 
 if ! grep -q 'ppt-review' "$ROOT_DIR/docs/openclaw-install.md"; then
   echo 'Install docs should explain the advanced PPT skills.' >&2
+  exit 1
+fi
+
+if ! grep -qi 'progress' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should explain the progress reporting behavior.' >&2
+  exit 1
+fi
+
+if ! grep -qi 'ppt-master' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should mention ppt-master as a required dependency.' >&2
+  exit 1
+fi
+
+if ! grep -q 'https://github.com/funenc-lab/ppt-master' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should reference the funenc-lab/ppt-master repository URL.' >&2
+  exit 1
+fi
+
+if ! grep -qi 'AI' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should explicitly target AI-guided installation.' >&2
+  exit 1
+fi
+
+if ! grep -q 'outputs/' "$ROOT_DIR/AGENTS.md"; then
+  echo 'AGENTS.md should define the output directory convention.' >&2
+  exit 1
+fi
+
+if ! grep -q 'outputs/' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should define the output directory convention.' >&2
+  exit 1
+fi
+
+if ! grep -q '^outputs/$' "$ROOT_DIR/.gitignore"; then
+  echo '.gitignore should ignore generated outputs.' >&2
   exit 1
 fi
 

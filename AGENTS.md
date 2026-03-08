@@ -25,6 +25,28 @@ Keep code, scripts, JSON, XML, shell commands, and any machine-readable artifact
 - Rewrite mode: tighten headlines, reduce clutter, and improve story flow without changing facts.
 - Conversion mode: transform documents, notes, requirements, or status updates into presentation-ready structure.
 
+## Progress Reporting
+
+For multi-step PPT design, review, or rewrite work, report progress proactively during execution.
+
+Each progress checkpoint should be concise and include:
+
+- completed stage
+- current stage
+- next stage
+- blocker or dependency, if one exists
+
+Use progress updates at natural milestones such as:
+
+- framing and requirement capture completed
+- narrative spine completed
+- slide plan completed
+- review findings consolidated
+- final polish started or completed
+
+Do not spam progress updates for trivial one-shot requests.
+One short update per meaningful milestone is preferred.
+
 ## Output Contract
 
 Unless the user asks otherwise, prefer this output order:
@@ -41,6 +63,25 @@ When drafting slide content:
 - Make the ask, decision, or takeaway explicit.
 - Distinguish confirmed facts from inferred conclusions.
 - Prefer fewer stronger slides over many weak slides.
+
+## Output Directory Convention
+
+When the agent writes reusable local artifacts, use the repository-root `outputs/` directory unless the user explicitly requests another path.
+
+Preferred layout:
+
+- `outputs/decks/`: slide blueprints, rewritten deck copy, and deck-ready markdown
+- `outputs/reviews/`: review reports, scored rubrics, and issue lists
+- `outputs/speaker-notes/`: talk tracks, transitions, and Q&A packs
+- `outputs/assets/`: exported images, charts, PDFs, and presentation attachments
+- `outputs/tmp/`: disposable intermediate files that can be regenerated
+
+Naming rules:
+
+- Use English-only directory and file names.
+- Prefer `YYYY-MM-DD-topic-slug` task folders under the category directory.
+- Keep all files for one task in the same task folder.
+- Do not write generated deliverables to the repository root unless the user explicitly asks for it.
 
 ## Review Standards
 
