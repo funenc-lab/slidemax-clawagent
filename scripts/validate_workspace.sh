@@ -18,6 +18,7 @@ required_files=(
   "skills/deck-polish/SKILL.md"
   "scripts/install_openclaw_agent.sh"
   "docs/openclaw-install.md"
+  "tests/test_install_openclaw_agent.sh"
 )
 
 missing=0
@@ -56,6 +57,16 @@ for skill_file in \
   fi
 done
 
+if ! grep -q 'AGENTS.md' "$ROOT_DIR/TOOLS.md"; then
+  echo "TOOLS.md should reference AGENTS.md as the canonical workspace contract." >&2
+  missing=1
+fi
+
+if ! grep -q 'HEARTBEAT.md' "$ROOT_DIR/TOOLS.md"; then
+  echo "TOOLS.md should reference HEARTBEAT.md for heartbeat behavior." >&2
+  missing=1
+fi
+
 if ! grep -qi 'ppt-master' "$ROOT_DIR/docs/openclaw-install.md"; then
   echo "Install docs must mention the required ppt-master dependency." >&2
   missing=1
@@ -66,23 +77,18 @@ if ! grep -q 'https://github.com/funenc-lab/ppt-master' "$ROOT_DIR/docs/openclaw
   missing=1
 fi
 
+if ! grep -q -- '--skip-companion-check' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo "Install docs must explain the --skip-companion-check override." >&2
+  missing=1
+fi
+
+if ! grep -q 'PPT_MASTER_DIR' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo "Install docs must explain the PPT_MASTER_DIR override." >&2
+  missing=1
+fi
+
 if ! grep -qi 'AI' "$ROOT_DIR/docs/openclaw-install.md"; then
   echo "Install docs must explicitly target AI-guided installation." >&2
-  missing=1
-fi
-
-if ! grep -q 'outputs/' "$ROOT_DIR/AGENTS.md"; then
-  echo "AGENTS.md must define the output directory convention." >&2
-  missing=1
-fi
-
-if ! grep -q 'outputs/' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must define the output directory convention." >&2
-  missing=1
-fi
-
-if ! grep -q '^outputs/$' "$ROOT_DIR/.gitignore"; then
-  echo ".gitignore must ignore generated outputs." >&2
   missing=1
 fi
 

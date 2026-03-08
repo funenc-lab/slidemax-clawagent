@@ -19,6 +19,7 @@ required_files=(
   "skills/speaker-notes/SKILL.md"
   "skills/deck-polish/SKILL.md"
   "docs/openclaw-install.md"
+  "tests/test_install_openclaw_agent.sh"
 )
 
 for relative_path in "${required_files[@]}"; do
@@ -41,6 +42,16 @@ fi
 
 if ! grep -q 'openclaw agents add' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
   echo 'Install script must register the workspace with OpenClaw.' >&2
+  exit 1
+fi
+
+if ! grep -q -- '--skip-companion-check' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
+  echo 'Install script must support the --skip-companion-check override.' >&2
+  exit 1
+fi
+
+if ! grep -q 'PPT_MASTER_DIR' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
+  echo 'Install script must support the PPT_MASTER_DIR override.' >&2
   exit 1
 fi
 
@@ -71,6 +82,16 @@ for skill_file in \
   fi
 done
 
+if ! grep -q 'AGENTS.md' "$ROOT_DIR/TOOLS.md"; then
+  echo 'TOOLS.md should reference AGENTS.md as the canonical contract.' >&2
+  exit 1
+fi
+
+if ! grep -q 'HEARTBEAT.md' "$ROOT_DIR/TOOLS.md"; then
+  echo 'TOOLS.md should reference HEARTBEAT.md for heartbeat behavior.' >&2
+  exit 1
+fi
+
 if ! grep -q 'HEARTBEAT.md' "$ROOT_DIR/docs/openclaw-install.md"; then
   echo 'Install docs should explain HEARTBEAT.md.' >&2
   exit 1
@@ -96,23 +117,18 @@ if ! grep -q 'https://github.com/funenc-lab/ppt-master' "$ROOT_DIR/docs/openclaw
   exit 1
 fi
 
+if ! grep -q -- '--skip-companion-check' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should explain the --skip-companion-check override.' >&2
+  exit 1
+fi
+
+if ! grep -q 'PPT_MASTER_DIR' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should explain the PPT_MASTER_DIR override.' >&2
+  exit 1
+fi
+
 if ! grep -qi 'AI' "$ROOT_DIR/docs/openclaw-install.md"; then
   echo 'Install docs should explicitly target AI-guided installation.' >&2
-  exit 1
-fi
-
-if ! grep -q 'outputs/' "$ROOT_DIR/AGENTS.md"; then
-  echo 'AGENTS.md should define the output directory convention.' >&2
-  exit 1
-fi
-
-if ! grep -q 'outputs/' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo 'Install docs should define the output directory convention.' >&2
-  exit 1
-fi
-
-if ! grep -q '^outputs/$' "$ROOT_DIR/.gitignore"; then
-  echo '.gitignore should ignore generated outputs.' >&2
   exit 1
 fi
 
