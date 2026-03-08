@@ -32,7 +32,7 @@
 
 以下内容来自当前仓库脚本和 `ppt-master` 官方仓库：
 
-- 当前仓库安装脚本会先校验 workspace，再检查 `Node.js 22+`，然后按需安装 `openclaw`，最后注册 agent workspace
+- 当前仓库安装脚本会先校验 workspace，再校验 `ppt-master` companion repo 的路径、origin 和 `requirements.txt`，然后检查 `Node.js 22+`，按需安装 `openclaw`，最后注册 agent workspace
 - `ppt-master` 官方 README 当前给出的最低安装前提是：`Python 3.8+`
 - `ppt-master` 官方 README 当前给出的依赖安装命令是：`pip install -r requirements.txt`
 - `funenc-lab/ppt-master` 的 Git clone 地址当前可用
@@ -224,15 +224,30 @@ cd "$WORKSPACE_DIR"
 ./scripts/install_openclaw_agent.sh my-ppt-agent
 ```
 
+如果 `ppt-master` 不在默认同级目录，可以显式指定：
+
+```bash
+PPT_MASTER_DIR=/absolute/path/to/ppt-master ./scripts/install_openclaw_agent.sh
+```
+
+如果你明确知道自己要绕过 companion preflight，可显式执行：
+
+```bash
+./scripts/install_openclaw_agent.sh --skip-companion-check my-ppt-agent
+```
+
+注意：`--skip-companion-check` 只应用于明确受控的例外场景，不应作为默认安装路径。
+
 当前脚本内部会依次完成：
 
 1. 调用 `./scripts/validate_workspace.sh`
-2. 检查 `Node.js 22+`
-3. 如缺失则执行 `npm install -g openclaw@latest`
-4. 检查 agent 是否已经注册
-5. 注册当前仓库为 OpenClaw workspace
+2. 校验 `ppt-master` companion repo 的路径、origin 和 `requirements.txt`
+3. 检查 `Node.js 22+`
+4. 如缺失则执行 `npm install -g openclaw@latest`
+5. 检查 agent 是否已经注册
+6. 注册当前仓库为 OpenClaw workspace
 
-AI 不需要重复实现这些逻辑，但必须知道脚本**不包含** `ppt-master` 的安装。
+AI 不需要重复实现这些逻辑，但必须知道脚本**不会**自动 clone `ppt-master`，也**不会**自动安装其 Python 依赖。脚本现在只负责在 companion repo 缺失或配置错误时尽早失败。
 
 ### 第 6 步：安装后验证
 
@@ -314,6 +329,7 @@ mkdir -p \
 
 - `scripts/install_openclaw_agent.sh`
   - 校验 workspace
+  - 校验 `ppt-master` companion repo
   - 检查 `Node.js 22+`
   - 按需安装 `openclaw`
   - 注册当前仓库为 agent workspace

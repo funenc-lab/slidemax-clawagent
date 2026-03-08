@@ -10,6 +10,7 @@ This workspace packages a PPT-focused OpenClaw agent with:
 - specialized presentation skills for generation, review, polishing, and speaker support
 - a tiny heartbeat contract for low-noise follow-up behavior
 - install and validation scripts for repeatable workspace registration
+- smoke tests for the installation preflight and agent registration flow
 
 This workspace is intended to be installed together with the companion repository `ppt-master`:
 
@@ -40,6 +41,7 @@ This repository does not auto-clone or auto-install `ppt-master`; that dependenc
 - A lightweight proactive heartbeat contract: `HEARTBEAT.md`
 - Validation script: `scripts/validate_workspace.sh`
 - Installation script: `scripts/install_openclaw_agent.sh`
+- Install smoke test: `tests/test_install_openclaw_agent.sh`
 - Chinese AI installation guide: `docs/openclaw-install.md`
 
 ## Workspace Layout
@@ -63,9 +65,10 @@ This repository does not auto-clone or auto-install `ppt-master`; that dependenc
 
 ### Operational Layer
 
-- `scripts/install_openclaw_agent.sh`: validates the workspace, ensures OpenClaw CLI exists, and registers the agent
+- `scripts/install_openclaw_agent.sh`: validates the workspace, preflights the companion repository, ensures OpenClaw CLI exists, and registers the agent
 - `scripts/validate_workspace.sh`: checks required files and key prompt constraints
 - `tests/test_workspace_structure.sh`: smoke test for expected workspace structure
+- `tests/test_install_openclaw_agent.sh`: behavior-level smoke test for install preflight and agent registration
 
 ## Installation Overview
 
@@ -94,11 +97,24 @@ You can also specify a custom agent name:
 ./scripts/install_openclaw_agent.sh my-ppt-agent
 ```
 
+To point at a non-default companion repository path:
+
+```bash
+PPT_MASTER_DIR=/absolute/path/to/ppt-master ./scripts/install_openclaw_agent.sh
+```
+
+To bypass the companion preflight intentionally:
+
+```bash
+./scripts/install_openclaw_agent.sh --skip-companion-check my-ppt-agent
+```
+
 ## Quick Validate
 
 ```bash
 ./scripts/validate_workspace.sh
 ./tests/test_workspace_structure.sh
+./tests/test_install_openclaw_agent.sh
 ```
 
 ## Output Directories
@@ -130,7 +146,7 @@ Naming rules:
 
 ## Extension Points
 
-- add tighter runtime checks for the companion `ppt-master` repository
+- add optional Python dependency health checks for the companion `ppt-master` repository
 - add richer `.pptx` handling or export workflows
 - add more domain skills such as board updates, sales pitches, or technical design reviews
 - add troubleshooting, upgrade, or uninstall guidance to `docs/openclaw-install.md`
