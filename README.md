@@ -22,7 +22,7 @@ For the full AI-oriented installation runbook, see `docs/openclaw-install.md`.
 
 Before registering this workspace with OpenClaw, install the SlideMax companion project from the canonical repository `funenc-lab/slidemax`.
 
-According to the official SlideMax repository (legacy alias: `ppt-master`), the minimum setup includes:
+According to the official SlideMax repository, the minimum setup includes:
 
 - `Python 3.8+`
 - `pip install -r requirements.txt`
@@ -100,19 +100,14 @@ You can also specify a custom agent name:
 ./scripts/install_openclaw_agent.sh my-ppt-agent
 ```
 
-To point at a non-default companion repository path:
+Supported environment override for a non-default companion repository path:
 
 ```bash
 SLIDEMAX_DIR=/absolute/path/to/slidemax ./scripts/install_openclaw_agent.sh
 ```
 
-Legacy compatibility override:
 
-```bash
-PPT_MASTER_DIR=/absolute/path/to/ppt-master ./scripts/install_openclaw_agent.sh
-```
-
-Preferred CLI override:
+Supported CLI override:
 
 ```bash
 ./scripts/install_openclaw_agent.sh --slidemax-dir /absolute/path/to/slidemax
@@ -180,7 +175,7 @@ Naming rules:
 
 ## Extension Points
 
-- remove the legacy `funenc-lab/ppt-master` fallback after the migration window closes
+- add richer companion health checks or upgrade guidance to the install runbook
 - add richer `.pptx` handling or export workflows
 - add more domain skills such as board updates, sales pitches, or technical design reviews
 - add troubleshooting, upgrade, or uninstall guidance to `docs/openclaw-install.md`

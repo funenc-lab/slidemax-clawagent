@@ -4,32 +4,20 @@ set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 WORKSPACE_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
 DEFAULT_SLIDEMAX_DIR=$(cd "$WORKSPACE_DIR/.." && pwd)/slidemax
-LEGACY_DEFAULT_PPT_MASTER_DIR=$(cd "$WORKSPACE_DIR/.." && pwd)/ppt-master
 DEFAULT_AGENT_NAME=ppt-agents
 CANONICAL_SLIDEMAX_REPO=funenc-lab/slidemax
-LEGACY_PPT_MASTER_REPO=funenc-lab/ppt-master
 
 AGENT_NAME=$DEFAULT_AGENT_NAME
-SLIDEMAX_DIR=${SLIDEMAX_DIR:-${PPT_MASTER_DIR:-}}
-if [[ -z "$SLIDEMAX_DIR" ]]; then
-  if [[ -d "$DEFAULT_SLIDEMAX_DIR" ]]; then
-    SLIDEMAX_DIR=$DEFAULT_SLIDEMAX_DIR
-  elif [[ -d "$LEGACY_DEFAULT_PPT_MASTER_DIR" ]]; then
-    SLIDEMAX_DIR=$LEGACY_DEFAULT_PPT_MASTER_DIR
-  else
-    SLIDEMAX_DIR=$DEFAULT_SLIDEMAX_DIR
-  fi
-fi
+SLIDEMAX_DIR=${SLIDEMAX_DIR:-$DEFAULT_SLIDEMAX_DIR}
 SKIP_COMPANION_CHECK=0
 
 usage() {
   cat <<EOF_USAGE
-Usage: $(basename "$0") [--skip-companion-check] [--slidemax-dir PATH] [--ppt-master-dir PATH] [agent-name]
+Usage: $(basename "$0") [--skip-companion-check] [--slidemax-dir PATH] [agent-name]
 
 Options:
   --skip-companion-check  Skip SlideMax repository preflight validation.
   --slidemax-dir PATH     Override the SlideMax companion repository path.
-  --ppt-master-dir PATH   Legacy alias for the companion repository path.
   -h, --help              Show this help message.
 EOF_USAGE
 }
@@ -42,7 +30,7 @@ parse_args() {
       --skip-companion-check)
         SKIP_COMPANION_CHECK=1
         ;;
-      --slidemax-dir|--ppt-master-dir)
+      --slidemax-dir)
         if [[ $# -lt 2 ]]; then
           echo "Missing value for $1." >&2
           exit 1
@@ -107,9 +95,7 @@ is_expected_slidemax_remote() {
   normalized_remote=$(normalize_github_remote "$1")
 
   [[ "$normalized_remote" == "$CANONICAL_SLIDEMAX_REPO" ||
-     "$normalized_remote" == "$CANONICAL_SLIDEMAX_REPO.git" ||
-     "$normalized_remote" == "$LEGACY_PPT_MASTER_REPO" ||
-     "$normalized_remote" == "$LEGACY_PPT_MASTER_REPO.git" ]]
+     "$normalized_remote" == "$CANONICAL_SLIDEMAX_REPO.git" ]]
 }
 
 ensure_slidemax_repository() {
@@ -134,7 +120,7 @@ ensure_slidemax_repository() {
   fi
 
   if ! is_expected_slidemax_remote "$origin_url"; then
-    echo "SlideMax companion repository origin does not match funenc-lab/slidemax or the legacy funenc-lab/ppt-master: $origin_url" >&2
+    echo "SlideMax companion repository origin does not match funenc-lab/slidemax: $origin_url" >&2
     exit 1
   fi
 

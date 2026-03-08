@@ -56,13 +56,18 @@ if ! grep -q 'SLIDEMAX_DIR' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
   exit 1
 fi
 
-if ! grep -q 'PPT_MASTER_DIR' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
-  echo 'Install script must support the PPT_MASTER_DIR legacy override.' >&2
+if ! grep -q -- '--slidemax-dir' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
+  echo 'Install script must support the --slidemax-dir option.' >&2
   exit 1
 fi
 
-if ! grep -q -- '--slidemax-dir' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
-  echo 'Install script must support the --slidemax-dir option.' >&2
+if grep -q 'PPT_MASTER_DIR' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
+  echo 'Install script must not support the deprecated PPT_MASTER_DIR override.' >&2
+  exit 1
+fi
+
+if grep -q -- '--ppt-master-dir' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
+  echo 'Install script must not support the deprecated --ppt-master-dir option.' >&2
   exit 1
 fi
 
@@ -118,13 +123,13 @@ if ! grep -qi 'progress' "$ROOT_DIR/docs/openclaw-install.md"; then
   exit 1
 fi
 
-if ! grep -qi 'ppt-master' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo 'Install docs should mention ppt-master as a required dependency.' >&2
+if ! grep -q 'https://github.com/funenc-lab/slidemax' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should reference the canonical funenc-lab/slidemax repository URL.' >&2
   exit 1
 fi
 
-if ! grep -q 'https://github.com/funenc-lab/slidemax' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo 'Install docs should reference the canonical funenc-lab/slidemax repository URL.' >&2
+if grep -qi 'ppt-master' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should not mention deprecated ppt-master compatibility.' >&2
   exit 1
 fi
 
@@ -138,8 +143,8 @@ if ! grep -q 'SLIDEMAX_DIR' "$ROOT_DIR/docs/openclaw-install.md"; then
   exit 1
 fi
 
-if ! grep -q 'PPT_MASTER_DIR' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo 'Install docs should explain the PPT_MASTER_DIR legacy override.' >&2
+if grep -q 'PPT_MASTER_DIR' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should not mention the deprecated PPT_MASTER_DIR override.' >&2
   exit 1
 fi
 
@@ -185,6 +190,11 @@ fi
 
 if ! grep -q 'raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md' "$ROOT_DIR/README.md"; then
   echo 'README.md should point AI installers to the GitHub file URL for the install runbook.' >&2
+  exit 1
+fi
+
+if grep -qi 'ppt-master' "$ROOT_DIR/README.md"; then
+  echo 'README.md should not mention deprecated ppt-master compatibility in install guidance.' >&2
   exit 1
 fi
 

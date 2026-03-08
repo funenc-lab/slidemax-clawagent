@@ -78,7 +78,7 @@ main() {
   local output_file=$temp_dir/install.out
   local bad_repo=$temp_dir/bad-slidemax
   local good_repo=$temp_dir/good-slidemax
-  local legacy_repo=$temp_dir/legacy-ppt-master
+  local deprecated_remote_repo=$temp_dir/deprecated-remote
 
   make_mock_bin "$mock_bin"
   export PATH="$mock_bin:$PATH"
@@ -86,7 +86,6 @@ main() {
 
   : >"$log_file"
   export SLIDEMAX_DIR=$temp_dir/missing-slidemax
-  unset PPT_MASTER_DIR
   export MOCK_OPENCLAW_STATE=absent
   if run_install "$output_file" test-agent; then
     fail "install should fail when the SlideMax companion repository is missing"
@@ -99,7 +98,6 @@ main() {
   git -C "$bad_repo" remote add origin https://github.com/example/not-slidemax.git
   : >"$log_file"
   export SLIDEMAX_DIR=$bad_repo
-  unset PPT_MASTER_DIR
   if run_install "$output_file" test-agent; then
     fail "install should fail when the SlideMax companion remote is unexpected"
   fi
@@ -113,7 +111,6 @@ main() {
 
   : >"$log_file"
   export SLIDEMAX_DIR=$good_repo
-  unset PPT_MASTER_DIR
   export MOCK_OPENCLAW_STATE=absent
   if ! run_install "$output_file" test-agent; then
     cat "$output_file" >&2
@@ -122,24 +119,22 @@ main() {
   assert_contains "$output_file" "Validated SlideMax companion repository: $good_repo"
   assert_contains "$log_file" "agents add test-agent --workspace $ROOT_DIR --non-interactive"
 
-  mkdir -p "$legacy_repo"
-  git -C "$legacy_repo" init -q
-  git -C "$legacy_repo" remote add origin https://github.com/funenc-lab/ppt-master.git
-  touch "$legacy_repo/requirements.txt"
+  mkdir -p "$deprecated_remote_repo"
+  git -C "$deprecated_remote_repo" init -q
+  git -C "$deprecated_remote_repo" remote add origin https://github.com/funenc-lab/ppt-master.git
+  touch "$deprecated_remote_repo/requirements.txt"
 
   : >"$log_file"
-  export SLIDEMAX_DIR=$legacy_repo
-  unset PPT_MASTER_DIR
+  export SLIDEMAX_DIR=$deprecated_remote_repo
   export MOCK_OPENCLAW_STATE=absent
-  if ! run_install "$output_file" legacy-agent; then
-    cat "$output_file" >&2
-    fail "install should still allow the legacy ppt-master remote during migration"
+  if run_install "$output_file" deprecated-remote-agent; then
+    fail "install should fail when the companion remote does not match funenc-lab/slidemax"
   fi
-  assert_contains "$log_file" "agents add legacy-agent --workspace $ROOT_DIR --non-interactive"
+  assert_contains "$output_file" "SlideMax companion repository origin does not match funenc-lab/slidemax"
+  [[ ! -s "$log_file" ]] || fail "agent registration should not run when companion remote is deprecated"
 
   : >"$log_file"
   export SLIDEMAX_DIR=$temp_dir/still-missing
-  unset PPT_MASTER_DIR
   export MOCK_OPENCLAW_STATE=absent
   if ! run_install "$output_file" --skip-companion-check skip-agent; then
     cat "$output_file" >&2
@@ -150,7 +145,6 @@ main() {
 
   : >"$log_file"
   export SLIDEMAX_DIR=$good_repo
-  unset PPT_MASTER_DIR
   export MOCK_OPENCLAW_STATE=absent
   if ! run_install "$output_file" slidemax-env-agent; then
     cat "$output_file" >&2
@@ -169,7 +163,15 @@ main() {
 
   : >"$log_file"
   export SLIDEMAX_DIR=$good_repo
-  unset PPT_MASTER_DIR
+  export MOCK_OPENCLAW_STATE=absent
+  if run_install "$output_file" --ppt-master-dir "$good_repo" rejected-option-agent; then
+    fail "install should reject the deprecated --ppt-master-dir option"
+  fi
+  assert_contains "$output_file" "Unknown option: --ppt-master-dir"
+  [[ ! -s "$log_file" ]] || fail "agent registration should not run when the install command is invalid"
+
+  : >"$log_file"
+  export SLIDEMAX_DIR=$good_repo
   export MOCK_OPENCLAW_STATE=present
   export MOCK_AGENT_NAME=existing-agent
   if ! run_install "$output_file" existing-agent; then

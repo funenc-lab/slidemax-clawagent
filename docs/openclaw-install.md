@@ -11,7 +11,7 @@ The goal is to ensure the AI completes the installation in the correct order:
 Key facts:
 
 - The canonical repository address for SlideMax is `https://github.com/funenc-lab/slidemax`
-- The legacy remote `https://github.com/funenc-lab/ppt-master.git` is still accepted during migration
+- Only the canonical `funenc-lab/slidemax` remote is supported by this installation flow
 - The agent uses the installed SlideMax repository as the workflow skill backend for actual PPT generation
 - The workspace exposes `skills/slidemax-workflow/SKILL.md` as the local skill entrypoint for that generation flow
 - This repository contains the OpenClaw workspace, not the SlideMax companion application itself
@@ -59,9 +59,9 @@ This runbook assumes:
 
 The following recommendations improve safety, but are not hard requirements from the companion repository itself:
 
-- prefer the local companion directory name `slidemax`; keep `ppt-master` only for legacy compatibility
+- use the local companion directory name `slidemax` for all new installs
 - reuse an existing local clone when its remote is valid
-- stop and report if the existing remote is neither the canonical `funenc-lab/slidemax` remote nor the legacy `funenc-lab/ppt-master` remote
+- stop and report if the existing remote is not the canonical `funenc-lab/slidemax` remote
 
 ## How the Agent Uses SlideMax
 
@@ -79,7 +79,7 @@ The installation is considered complete only when all of the following are true:
 
 - this workspace remains at its intended local path
 - the SlideMax companion repository exists at the chosen path
-- the companion repository remote is canonical `funenc-lab/slidemax` or accepted legacy `funenc-lab/ppt-master`
+- the companion repository remote is canonical `funenc-lab/slidemax`
 - the companion repository dependency installation command succeeds
 - `./scripts/validate_workspace.sh` succeeds
 - `./tests/test_workspace_structure.sh` succeeds
@@ -150,10 +150,11 @@ Then report:
 
 If the user explicitly provided a custom companion path, use that path instead.
 
-Preferred override names:
+Supported override names:
 
-- use `SLIDEMAX_DIR` as the primary environment variable
-- accept `PPT_MASTER_DIR` only as a legacy compatibility alias
+- use `SLIDEMAX_DIR` as the supported environment variable
+- use `--slidemax-dir` as the supported CLI override
+- do not invent alternate environment variable names for the companion path
 
 ### Step 1: Check Required Tools
 
@@ -190,6 +191,9 @@ Check whether the target path already contains a Git repository:
 ```bash
 if [ -d "$SLIDEMAX_DIR/.git" ]; then
   git -C "$SLIDEMAX_DIR" remote get-url origin
+elif [ -e "$SLIDEMAX_DIR" ]; then
+  echo "Target companion path exists but is not a Git repository: $SLIDEMAX_DIR" >&2
+  exit 1
 else
   git clone https://github.com/funenc-lab/slidemax.git "$SLIDEMAX_DIR"
 fi
@@ -197,12 +201,12 @@ fi
 
 Rules:
 
-- if the directory does not exist, clone the canonical repository
-- if the existing remote is `https://github.com/funenc-lab/slidemax.git`, reuse it
-- if the existing remote is the legacy `https://github.com/funenc-lab/ppt-master.git`, the current installer still accepts it during migration
-- if the existing remote is neither canonical nor legacy, stop and report the conflict
+- if the path does not exist, clone the canonical repository
+- if the path exists and is a Git repository, reuse it only when the remote is `https://github.com/funenc-lab/slidemax.git`
+- if the path exists but is not a Git repository, stop and report the conflict
+- if the existing remote is anything else, stop and report the conflict
 
-Do not delete, overwrite, or force-reset an unexpected repository.
+Do not delete, overwrite, or force-reset an unexpected directory or repository.
 
 ### Step 3: Install SlideMax Dependencies
 
@@ -259,13 +263,7 @@ If the SlideMax repository is not located at the default sibling path:
 SLIDEMAX_DIR=/absolute/path/to/slidemax ./scripts/install_openclaw_agent.sh
 ```
 
-Legacy compatibility override:
-
-```bash
-PPT_MASTER_DIR=/absolute/path/to/ppt-master ./scripts/install_openclaw_agent.sh
-```
-
-Preferred CLI override:
+Supported CLI override:
 
 ```bash
 ./scripts/install_openclaw_agent.sh --slidemax-dir /absolute/path/to/slidemax
@@ -284,10 +282,9 @@ The script currently performs these actions internally:
 It resolves the companion repository path in this order:
 
 1. `SLIDEMAX_DIR`
-2. `PPT_MASTER_DIR` as a legacy alias
-3. `../slidemax`
-4. `../ppt-master` as a legacy fallback
+2. `../slidemax`
 
+The script then:
 
 1. run `./scripts/validate_workspace.sh`
 2. validate the SlideMax companion repository path, origin, and `requirements.txt`
@@ -429,7 +426,7 @@ The same pattern is useful for longer installation or configuration flows handle
 The AI may only claim the installation is complete when all of the following are true:
 
 - the SlideMax companion repository exists at the target path
-- the companion repository remote is canonical `funenc-lab/slidemax` or accepted legacy `funenc-lab/ppt-master`
+- the companion repository remote is canonical `funenc-lab/slidemax`
 - `python3 -m pip install -r requirements.txt` completed successfully
 - `./scripts/validate_workspace.sh` passed
 - `./tests/test_workspace_structure.sh` passed
@@ -441,8 +438,8 @@ If any of these are missing, the AI may only report partial progress, not full c
 
 ### 1. The SlideMax Directory Exists but the Remote Does Not Match
 
-If the remote is neither `funenc-lab/slidemax` nor the accepted legacy `funenc-lab/ppt-master`, stop and report the mismatch.
-Do not overwrite, delete, or force-change the repository.
+If the remote is not `funenc-lab/slidemax`, stop and report the mismatch.
+Do not overwrite, delete, rename, or force-change the repository.
 
 ### 2. `python3 -m pip install -r requirements.txt` Fails
 
