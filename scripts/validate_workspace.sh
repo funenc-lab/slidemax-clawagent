@@ -16,6 +16,7 @@ required_files=(
   "skills/ppt-review/SKILL.md"
   "skills/speaker-notes/SKILL.md"
   "skills/deck-polish/SKILL.md"
+  "skills/slidemax-workflow/SKILL.md"
   "scripts/install_openclaw_agent.sh"
   "docs/openclaw-install.md"
   "tests/test_install_openclaw_agent.sh"
@@ -82,8 +83,13 @@ if ! grep -q -- '--skip-companion-check' "$ROOT_DIR/docs/openclaw-install.md"; t
   missing=1
 fi
 
+if ! grep -q 'SLIDEMAX_DIR' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo "Install docs must explain the SLIDEMAX_DIR override." >&2
+  missing=1
+fi
+
 if ! grep -q 'PPT_MASTER_DIR' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must explain the PPT_MASTER_DIR override." >&2
+  echo "Install docs must explain the PPT_MASTER_DIR legacy override." >&2
   missing=1
 fi
 
@@ -92,8 +98,38 @@ if ! grep -qi 'AI' "$ROOT_DIR/docs/openclaw-install.md"; then
   missing=1
 fi
 
+if ! grep -q 'does not exist yet, create it' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo "Install docs must explain that a missing agent should be created." >&2
+  missing=1
+fi
+
+if ! grep -q 'already exists, reuse it and do not create a duplicate' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo "Install docs must explain that an existing agent should be reused." >&2
+  missing=1
+fi
+
 if ! grep -q 'AI Install Prompt' "$ROOT_DIR/README.md"; then
   echo "README.md must include a copy-ready AI install prompt." >&2
+  missing=1
+fi
+
+if ! grep -q 'slidemax-workflow' "$ROOT_DIR/AGENTS.md"; then
+  echo "AGENTS.md must describe the SlideMax workflow integration." >&2
+  missing=1
+fi
+
+if ! grep -q 'SlideMax' "$ROOT_DIR/IDENTITY.md"; then
+  echo "IDENTITY.md must declare SlideMax as the PPT generation backend." >&2
+  missing=1
+fi
+
+if ! grep -q 'skills/slidemax-workflow/SKILL.md' "$ROOT_DIR/README.md"; then
+  echo "README.md must list the SlideMax workflow skill entrypoint." >&2
+  missing=1
+fi
+
+if ! grep -q 'actual PPT generation' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo "Install docs must explain that SlideMax is used for actual PPT generation." >&2
   missing=1
 fi
 

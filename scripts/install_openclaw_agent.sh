@@ -3,22 +3,33 @@ set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 WORKSPACE_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
-DEFAULT_PPT_MASTER_DIR=$(cd "$WORKSPACE_DIR/.." && pwd)/ppt-master
+DEFAULT_SLIDEMAX_DIR=$(cd "$WORKSPACE_DIR/.." && pwd)/slidemax
+LEGACY_DEFAULT_PPT_MASTER_DIR=$(cd "$WORKSPACE_DIR/.." && pwd)/ppt-master
 DEFAULT_AGENT_NAME=ppt-agents
-CANONICAL_PPT_MASTER_REPO=funenc-lab/slidemax
+CANONICAL_SLIDEMAX_REPO=funenc-lab/slidemax
 LEGACY_PPT_MASTER_REPO=funenc-lab/ppt-master
 
 AGENT_NAME=$DEFAULT_AGENT_NAME
-PPT_MASTER_DIR=${PPT_MASTER_DIR:-$DEFAULT_PPT_MASTER_DIR}
+SLIDEMAX_DIR=${SLIDEMAX_DIR:-${PPT_MASTER_DIR:-}}
+if [[ -z "$SLIDEMAX_DIR" ]]; then
+  if [[ -d "$DEFAULT_SLIDEMAX_DIR" ]]; then
+    SLIDEMAX_DIR=$DEFAULT_SLIDEMAX_DIR
+  elif [[ -d "$LEGACY_DEFAULT_PPT_MASTER_DIR" ]]; then
+    SLIDEMAX_DIR=$LEGACY_DEFAULT_PPT_MASTER_DIR
+  else
+    SLIDEMAX_DIR=$DEFAULT_SLIDEMAX_DIR
+  fi
+fi
 SKIP_COMPANION_CHECK=0
 
 usage() {
   cat <<EOF_USAGE
-Usage: $(basename "$0") [--skip-companion-check] [--ppt-master-dir PATH] [agent-name]
+Usage: $(basename "$0") [--skip-companion-check] [--slidemax-dir PATH] [--ppt-master-dir PATH] [agent-name]
 
 Options:
-  --skip-companion-check  Skip ppt-master repository preflight validation.
-  --ppt-master-dir PATH   Override the companion repository path.
+  --skip-companion-check  Skip SlideMax repository preflight validation.
+  --slidemax-dir PATH     Override the SlideMax companion repository path.
+  --ppt-master-dir PATH   Legacy alias for the companion repository path.
   -h, --help              Show this help message.
 EOF_USAGE
 }
@@ -31,12 +42,12 @@ parse_args() {
       --skip-companion-check)
         SKIP_COMPANION_CHECK=1
         ;;
-      --ppt-master-dir)
+      --slidemax-dir|--ppt-master-dir)
         if [[ $# -lt 2 ]]; then
-          echo "Missing value for --ppt-master-dir." >&2
+          echo "Missing value for $1." >&2
           exit 1
         fi
-        PPT_MASTER_DIR=$2
+        SLIDEMAX_DIR=$2
         shift
         ;;
       -h|--help)
@@ -91,48 +102,48 @@ normalize_github_remote() {
   printf '%s' "$remote_url"
 }
 
-is_expected_ppt_master_remote() {
+is_expected_slidemax_remote() {
   local normalized_remote
   normalized_remote=$(normalize_github_remote "$1")
 
-  [[ "$normalized_remote" == "$CANONICAL_PPT_MASTER_REPO" ||
-     "$normalized_remote" == "$CANONICAL_PPT_MASTER_REPO.git" ||
+  [[ "$normalized_remote" == "$CANONICAL_SLIDEMAX_REPO" ||
+     "$normalized_remote" == "$CANONICAL_SLIDEMAX_REPO.git" ||
      "$normalized_remote" == "$LEGACY_PPT_MASTER_REPO" ||
      "$normalized_remote" == "$LEGACY_PPT_MASTER_REPO.git" ]]
 }
 
-ensure_companion_repository() {
+ensure_slidemax_repository() {
   local origin_url
 
   if [[ "$SKIP_COMPANION_CHECK" -eq 1 ]]; then
-    echo "Skipping ppt-master companion validation for: $PPT_MASTER_DIR"
+    echo "Skipping SlideMax companion validation for: $SLIDEMAX_DIR"
     return 0
   fi
 
-  if [[ ! -d "$PPT_MASTER_DIR/.git" ]]; then
-    echo "ppt-master companion repository is missing: $PPT_MASTER_DIR" >&2
+  if [[ ! -d "$SLIDEMAX_DIR/.git" ]]; then
+    echo "SlideMax companion repository is missing: $SLIDEMAX_DIR" >&2
     echo "Clone https://github.com/funenc-lab/slidemax.git or pass --skip-companion-check to bypass this preflight intentionally." >&2
     exit 1
   fi
 
   require_command git
 
-  if ! origin_url=$(git -C "$PPT_MASTER_DIR" remote get-url origin 2>/dev/null); then
-    echo "ppt-master companion repository is missing an origin remote: $PPT_MASTER_DIR" >&2
+  if ! origin_url=$(git -C "$SLIDEMAX_DIR" remote get-url origin 2>/dev/null); then
+    echo "SlideMax companion repository is missing an origin remote: $SLIDEMAX_DIR" >&2
     exit 1
   fi
 
-  if ! is_expected_ppt_master_remote "$origin_url"; then
-    echo "ppt-master companion repository origin does not match funenc-lab/slidemax or the legacy funenc-lab/ppt-master: $origin_url" >&2
+  if ! is_expected_slidemax_remote "$origin_url"; then
+    echo "SlideMax companion repository origin does not match funenc-lab/slidemax or the legacy funenc-lab/ppt-master: $origin_url" >&2
     exit 1
   fi
 
-  if [[ ! -f "$PPT_MASTER_DIR/requirements.txt" ]]; then
-    echo "ppt-master companion repository is missing requirements.txt: $PPT_MASTER_DIR" >&2
+  if [[ ! -f "$SLIDEMAX_DIR/requirements.txt" ]]; then
+    echo "SlideMax companion repository is missing requirements.txt: $SLIDEMAX_DIR" >&2
     exit 1
   fi
 
-  echo "Validated ppt-master companion repository: $PPT_MASTER_DIR"
+  echo "Validated SlideMax companion repository: $SLIDEMAX_DIR"
 }
 
 ensure_node_version() {
@@ -198,7 +209,7 @@ register_agent() {
 main() {
   parse_args "$@"
   "$SCRIPT_DIR/validate_workspace.sh"
-  ensure_companion_repository
+  ensure_slidemax_repository
   ensure_node_version
   ensure_openclaw
   register_agent
@@ -207,7 +218,7 @@ main() {
   echo "OpenClaw agent installed successfully."
   echo "Agent name: $AGENT_NAME"
   echo "Workspace: $WORKSPACE_DIR"
-  echo "Companion repository: $PPT_MASTER_DIR"
+  echo "Companion repository: $SLIDEMAX_DIR"
   echo
   echo "Recommended next steps:"
   echo "  openclaw agents list"

@@ -11,6 +11,8 @@ Use this skill when the user needs a new deck from source material such as notes
 
 Generate a presentation structure that is decision-ready, audience-aware, and easy to turn into slides.
 
+When the task requires a rendered PPT or PPTX instead of only a blueprint, hand the generated structure to `slidemax-workflow`.
+
 ## Inputs To Collect
 
 Identify or infer:

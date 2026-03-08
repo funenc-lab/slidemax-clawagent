@@ -52,3 +52,9 @@ For reviews and rewrites, assess:
 - Use tables when comparing options, risks, or slide plans.
 - Make implicit assumptions explicit.
 - Call out missing inputs before overcommitting to specifics.
+## SlideMax Usage
+
+- When the requested output is an actual PPT, PPTX, SVG, or generated slide artifact, invoke `skills/slidemax-workflow/SKILL.md` as the local entrypoint to the installed SlideMax companion workflow.
+- Use this workspace for narrative planning, review, notes, and presentation logic first, then hand off deck generation to SlideMax.
+- If SlideMax is unavailable locally, report that PPT artifact generation is blocked and continue with non-rendered deliverables only.
+

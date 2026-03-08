@@ -18,6 +18,7 @@ required_files=(
   "skills/ppt-review/SKILL.md"
   "skills/speaker-notes/SKILL.md"
   "skills/deck-polish/SKILL.md"
+  "skills/slidemax-workflow/SKILL.md"
   "docs/openclaw-install.md"
   "tests/test_install_openclaw_agent.sh"
 )
@@ -50,8 +51,18 @@ if ! grep -q -- '--skip-companion-check' "$ROOT_DIR/scripts/install_openclaw_age
   exit 1
 fi
 
+if ! grep -q 'SLIDEMAX_DIR' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
+  echo 'Install script must support the SLIDEMAX_DIR override.' >&2
+  exit 1
+fi
+
 if ! grep -q 'PPT_MASTER_DIR' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
-  echo 'Install script must support the PPT_MASTER_DIR override.' >&2
+  echo 'Install script must support the PPT_MASTER_DIR legacy override.' >&2
+  exit 1
+fi
+
+if ! grep -q -- '--slidemax-dir' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
+  echo 'Install script must support the --slidemax-dir option.' >&2
   exit 1
 fi
 
@@ -122,8 +133,13 @@ if ! grep -q -- '--skip-companion-check' "$ROOT_DIR/docs/openclaw-install.md"; t
   exit 1
 fi
 
+if ! grep -q 'SLIDEMAX_DIR' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should explain the SLIDEMAX_DIR override.' >&2
+  exit 1
+fi
+
 if ! grep -q 'PPT_MASTER_DIR' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo 'Install docs should explain the PPT_MASTER_DIR override.' >&2
+  echo 'Install docs should explain the PPT_MASTER_DIR legacy override.' >&2
   exit 1
 fi
 
@@ -132,8 +148,38 @@ if ! grep -qi 'AI' "$ROOT_DIR/docs/openclaw-install.md"; then
   exit 1
 fi
 
+if ! grep -q 'does not exist yet, create it' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should explain that a missing agent should be created.' >&2
+  exit 1
+fi
+
+if ! grep -q 'already exists, reuse it and do not create a duplicate' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should explain that an existing agent should be reused.' >&2
+  exit 1
+fi
+
 if ! grep -q 'AI Install Prompt' "$ROOT_DIR/README.md"; then
   echo 'README.md should include a copy-ready AI install prompt.' >&2
+  exit 1
+fi
+
+if ! grep -q 'slidemax-workflow' "$ROOT_DIR/AGENTS.md"; then
+  echo 'AGENTS.md should describe the SlideMax workflow integration.' >&2
+  exit 1
+fi
+
+if ! grep -q 'SlideMax' "$ROOT_DIR/IDENTITY.md"; then
+  echo 'IDENTITY.md should declare SlideMax as the PPT generation backend.' >&2
+  exit 1
+fi
+
+if ! grep -q 'skills/slidemax-workflow/SKILL.md' "$ROOT_DIR/README.md"; then
+  echo 'README.md should list the SlideMax workflow skill entrypoint.' >&2
+  exit 1
+fi
+
+if ! grep -q 'actual PPT generation' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should explain that SlideMax is used for actual PPT generation.' >&2
   exit 1
 fi
 

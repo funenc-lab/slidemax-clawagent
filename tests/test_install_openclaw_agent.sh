@@ -76,7 +76,7 @@ main() {
   local mock_bin=$temp_dir/mock-bin
   local log_file=$temp_dir/openclaw.log
   local output_file=$temp_dir/install.out
-  local bad_repo=$temp_dir/bad-ppt-master
+  local bad_repo=$temp_dir/bad-slidemax
   local good_repo=$temp_dir/good-slidemax
   local legacy_repo=$temp_dir/legacy-ppt-master
 
@@ -85,23 +85,25 @@ main() {
   export MOCK_OPENCLAW_LOG="$log_file"
 
   : >"$log_file"
-  export PPT_MASTER_DIR=$temp_dir/missing-ppt-master
+  export SLIDEMAX_DIR=$temp_dir/missing-slidemax
+  unset PPT_MASTER_DIR
   export MOCK_OPENCLAW_STATE=absent
   if run_install "$output_file" test-agent; then
-    fail "install should fail when ppt-master companion repository is missing"
+    fail "install should fail when the SlideMax companion repository is missing"
   fi
-  assert_contains "$output_file" "ppt-master companion repository is missing"
+  assert_contains "$output_file" "SlideMax companion repository is missing"
   [[ ! -s "$log_file" ]] || fail "agent registration should not run when companion repo is missing"
 
   mkdir -p "$bad_repo"
   git -C "$bad_repo" init -q
-  git -C "$bad_repo" remote add origin https://github.com/example/not-ppt-master.git
+  git -C "$bad_repo" remote add origin https://github.com/example/not-slidemax.git
   : >"$log_file"
-  export PPT_MASTER_DIR=$bad_repo
+  export SLIDEMAX_DIR=$bad_repo
+  unset PPT_MASTER_DIR
   if run_install "$output_file" test-agent; then
-    fail "install should fail when ppt-master companion remote is unexpected"
+    fail "install should fail when the SlideMax companion remote is unexpected"
   fi
-  assert_contains "$output_file" "ppt-master companion repository origin does not match"
+  assert_contains "$output_file" "SlideMax companion repository origin does not match"
   [[ ! -s "$log_file" ]] || fail "agent registration should not run when companion remote is invalid"
 
   mkdir -p "$good_repo"
@@ -110,12 +112,14 @@ main() {
   touch "$good_repo/requirements.txt"
 
   : >"$log_file"
-  export PPT_MASTER_DIR=$good_repo
+  export SLIDEMAX_DIR=$good_repo
+  unset PPT_MASTER_DIR
   export MOCK_OPENCLAW_STATE=absent
   if ! run_install "$output_file" test-agent; then
     cat "$output_file" >&2
     fail "install should succeed when companion repo uses the slidemax remote and agent is absent"
   fi
+  assert_contains "$output_file" "Validated SlideMax companion repository: $good_repo"
   assert_contains "$log_file" "agents add test-agent --workspace $ROOT_DIR --non-interactive"
 
   mkdir -p "$legacy_repo"
@@ -124,7 +128,8 @@ main() {
   touch "$legacy_repo/requirements.txt"
 
   : >"$log_file"
-  export PPT_MASTER_DIR=$legacy_repo
+  export SLIDEMAX_DIR=$legacy_repo
+  unset PPT_MASTER_DIR
   export MOCK_OPENCLAW_STATE=absent
   if ! run_install "$output_file" legacy-agent; then
     cat "$output_file" >&2
@@ -133,17 +138,38 @@ main() {
   assert_contains "$log_file" "agents add legacy-agent --workspace $ROOT_DIR --non-interactive"
 
   : >"$log_file"
-  export PPT_MASTER_DIR=$temp_dir/still-missing
+  export SLIDEMAX_DIR=$temp_dir/still-missing
+  unset PPT_MASTER_DIR
   export MOCK_OPENCLAW_STATE=absent
   if ! run_install "$output_file" --skip-companion-check skip-agent; then
     cat "$output_file" >&2
     fail "install should allow skipping companion validation explicitly"
   fi
-  assert_contains "$output_file" "Skipping ppt-master companion validation"
+  assert_contains "$output_file" "Skipping SlideMax companion validation"
   assert_contains "$log_file" "agents add skip-agent --workspace $ROOT_DIR --non-interactive"
 
   : >"$log_file"
-  export PPT_MASTER_DIR=$good_repo
+  export SLIDEMAX_DIR=$good_repo
+  unset PPT_MASTER_DIR
+  export MOCK_OPENCLAW_STATE=absent
+  if ! run_install "$output_file" slidemax-env-agent; then
+    cat "$output_file" >&2
+    fail "install should accept the SLIDEMAX_DIR environment override"
+  fi
+  assert_contains "$log_file" "agents add slidemax-env-agent --workspace $ROOT_DIR --non-interactive"
+
+  : >"$log_file"
+  unset SLIDEMAX_DIR
+  export MOCK_OPENCLAW_STATE=absent
+  if ! run_install "$output_file" --slidemax-dir "$good_repo" slidemax-flag-agent; then
+    cat "$output_file" >&2
+    fail "install should accept the --slidemax-dir option"
+  fi
+  assert_contains "$log_file" "agents add slidemax-flag-agent --workspace $ROOT_DIR --non-interactive"
+
+  : >"$log_file"
+  export SLIDEMAX_DIR=$good_repo
+  unset PPT_MASTER_DIR
   export MOCK_OPENCLAW_STATE=present
   export MOCK_AGENT_NAME=existing-agent
   if ! run_install "$output_file" existing-agent; then

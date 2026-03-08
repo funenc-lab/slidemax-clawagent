@@ -5,16 +5,18 @@
 This document is a full installation runbook for an AI executor, not a short end-user note.
 The goal is to ensure the AI completes the installation in the correct order:
 
-1. Install the companion repository for `ppt-master`
+1. Install the SlideMax companion repository used for actual PPT generation
 2. Register this repository as an OpenClaw agent workspace
 
 Key facts:
 
-- The canonical repository address for `ppt-master` is `https://github.com/funenc-lab/slidemax`
+- The canonical repository address for SlideMax is `https://github.com/funenc-lab/slidemax`
 - The legacy remote `https://github.com/funenc-lab/ppt-master.git` is still accepted during migration
-- This repository contains the OpenClaw workspace, not the `ppt-master` application itself
-- `scripts/install_openclaw_agent.sh` does not clone `ppt-master`
-- `scripts/install_openclaw_agent.sh` does not install the Python dependencies for `ppt-master`
+- The agent uses the installed SlideMax repository as the workflow skill backend for actual PPT generation
+- The workspace exposes `skills/slidemax-workflow/SKILL.md` as the local skill entrypoint for that generation flow
+- This repository contains the OpenClaw workspace, not the SlideMax companion application itself
+- `scripts/install_openclaw_agent.sh` does not clone SlideMax
+- `scripts/install_openclaw_agent.sh` does not install the Python dependencies for SlideMax
 
 ## Document Role
 
@@ -41,6 +43,7 @@ The following facts are confirmed from the current repository and the companion 
 - The companion repository requires at least `Python 3.8+`
 - The companion repository installs dependencies with `pip install -r requirements.txt`
 - The canonical GitHub repository for the companion project is `funenc-lab/slidemax`
+- The companion repository contains the workflow and commands used by the agent to generate PPT artifacts
 
 ### Assumptions
 
@@ -56,16 +59,26 @@ This runbook assumes:
 
 The following recommendations improve safety, but are not hard requirements from the companion repository itself:
 
-- keep the local companion directory name as `ppt-master` unless the user requested something else
+- prefer the local companion directory name `slidemax`; keep `ppt-master` only for legacy compatibility
 - reuse an existing local clone when its remote is valid
 - stop and report if the existing remote is neither the canonical `funenc-lab/slidemax` remote nor the legacy `funenc-lab/ppt-master` remote
+
+## How the Agent Uses SlideMax
+
+SlideMax is not only an installation dependency. It is the companion workflow used by this agent when the deliverable must become an actual PPT, PPTX, SVG, or rendered deck artifact.
+
+Recommended division of responsibility:
+
+- use this workspace to build the narrative, slide structure, notes, review findings, and content decisions
+- use the installed SlideMax workflow as the generation layer for actual deck artifacts
+- if SlideMax is missing, the agent may still produce outlines, copy, notes, and reviews, but should state that actual PPT generation is blocked
 
 ## Installation Success Criteria
 
 The installation is considered complete only when all of the following are true:
 
 - this workspace remains at its intended local path
-- the companion repository exists at the chosen path
+- the SlideMax companion repository exists at the chosen path
 - the companion repository remote is canonical `funenc-lab/slidemax` or accepted legacy `funenc-lab/ppt-master`
 - the companion repository dependency installation command succeeds
 - `./scripts/validate_workspace.sh` succeeds
@@ -127,15 +140,20 @@ First compute the local paths:
 ```bash
 WORKSPACE_DIR=$(pwd)
 PARENT_DIR=$(dirname "$WORKSPACE_DIR")
-PPT_MASTER_DIR="${PARENT_DIR}/ppt-master"
+SLIDEMAX_DIR="${PARENT_DIR}/slidemax"
 ```
 
 Then report:
 
 - the current workspace path
-- the chosen companion repository path
+- the chosen SlideMax companion repository path
 
 If the user explicitly provided a custom companion path, use that path instead.
+
+Preferred override names:
+
+- use `SLIDEMAX_DIR` as the primary environment variable
+- accept `PPT_MASTER_DIR` only as a legacy compatibility alias
 
 ### Step 1: Check Required Tools
 
@@ -159,21 +177,21 @@ npm --version
 
 Rules:
 
-- `ppt-master` requires `Python 3.8+`
+- SlideMax requires `Python 3.8+`
 - the workspace installer requires `Node.js 22+`
 
 If `Node.js` is below `22`, do not run the workspace install script.
 If `Python` is below `3.8`, do not proceed with the companion repository installation.
 
-### Step 2: Install or Reuse `ppt-master`
+### Step 2: Install or Reuse SlideMax
 
 Check whether the target path already contains a Git repository:
 
 ```bash
-if [ -d "$PPT_MASTER_DIR/.git" ]; then
-  git -C "$PPT_MASTER_DIR" remote get-url origin
+if [ -d "$SLIDEMAX_DIR/.git" ]; then
+  git -C "$SLIDEMAX_DIR" remote get-url origin
 else
-  git clone https://github.com/funenc-lab/slidemax.git "$PPT_MASTER_DIR"
+  git clone https://github.com/funenc-lab/slidemax.git "$SLIDEMAX_DIR"
 fi
 ```
 
@@ -186,12 +204,12 @@ Rules:
 
 Do not delete, overwrite, or force-reset an unexpected repository.
 
-### Step 3: Install `ppt-master` Dependencies
+### Step 3: Install SlideMax Dependencies
 
 According to the companion repository instructions, the minimum dependency installation step is:
 
 ```bash
-cd "$PPT_MASTER_DIR"
+cd "$SLIDEMAX_DIR"
 python3 -m pip install -r requirements.txt
 ```
 
@@ -206,7 +224,7 @@ Execution requirements:
 
 ### Step 4: Return to the Workspace and Validate It
 
-After the companion repository is ready, return to this workspace:
+After the SlideMax repository is ready, return to this workspace:
 
 ```bash
 cd "$WORKSPACE_DIR"
@@ -224,16 +242,33 @@ Run the default install command:
 ./scripts/install_openclaw_agent.sh
 ```
 
+Agent handling rule:
+
+- if the target OpenClaw agent does not exist yet, create it
+- if the target OpenClaw agent already exists, reuse it and do not create a duplicate
+
 If the user provided a custom agent name:
 
 ```bash
 ./scripts/install_openclaw_agent.sh my-ppt-agent
 ```
 
-If the companion repository is not located at the default sibling path:
+If the SlideMax repository is not located at the default sibling path:
+
+```bash
+SLIDEMAX_DIR=/absolute/path/to/slidemax ./scripts/install_openclaw_agent.sh
+```
+
+Legacy compatibility override:
 
 ```bash
 PPT_MASTER_DIR=/absolute/path/to/ppt-master ./scripts/install_openclaw_agent.sh
+```
+
+Preferred CLI override:
+
+```bash
+./scripts/install_openclaw_agent.sh --slidemax-dir /absolute/path/to/slidemax
 ```
 
 If you intentionally need to bypass companion preflight validation in a controlled exception case:
@@ -246,14 +281,24 @@ If you intentionally need to bypass companion preflight validation in a controll
 
 The script currently performs these actions internally:
 
+It resolves the companion repository path in this order:
+
+1. `SLIDEMAX_DIR`
+2. `PPT_MASTER_DIR` as a legacy alias
+3. `../slidemax`
+4. `../ppt-master` as a legacy fallback
+
+
 1. run `./scripts/validate_workspace.sh`
-2. validate the companion repository path, origin, and `requirements.txt`
+2. validate the SlideMax companion repository path, origin, and `requirements.txt`
 3. verify `Node.js 22+`
 4. install `openclaw` if it is missing
 5. check whether the agent is already registered
-6. register this workspace with OpenClaw
+6. register this workspace with OpenClaw only when the target agent does not already exist
 
-The AI does not need to reimplement these steps, but it must remember that the script does not clone `ppt-master` and does not install the Python dependencies for `ppt-master`.
+If the target agent is already registered, the script reports that state and skips duplicate registration.
+
+The AI does not need to reimplement these steps, but it must remember that the script does not clone SlideMax and does not install the Python dependencies for SlideMax.
 The script only fails early when the companion repository is missing or incorrectly configured.
 
 ### Step 6: Post-Install Verification
@@ -309,7 +354,7 @@ Notes:
   - defines user preferences such as default Chinese responses and summary-first delivery
 
 - `IDENTITY.md`
-  - defines the agent name, role, domain, and working principles
+  - defines the agent name, role, domain, SlideMax generation backend, and working principles
 
 - `HEARTBEAT.md`
   - defines the minimum trigger conditions for proactive follow-up
@@ -319,9 +364,11 @@ Notes:
 
 - `skills/presentation-workflow/SKILL.md`
   - the workflow entry point for creation, review, rewrite, and conversion tasks
+  - prepares narrative inputs before handing actual deck generation to SlideMax when needed
 
 - `skills/ppt-generation/SKILL.md`
   - generates message-first deck blueprints from raw inputs
+  - feeds SlideMax when the deliverable must become an actual PPT artifact
 
 - `skills/ppt-review/SKILL.md`
   - reviews presentation material and prioritizes issues
@@ -331,6 +378,10 @@ Notes:
 
 - `skills/deck-polish/SKILL.md`
   - tightens wording, sharpens titles, and improves executive readability
+
+- `skills/slidemax-workflow/SKILL.md`
+  - routes actual PPT, PPTX, SVG, and rendered deck generation to the installed SlideMax companion workflow
+  - blocks generation cleanly when SlideMax is not installed locally
 
 ### Operational Scripts
 
@@ -363,7 +414,7 @@ It exists to constrain proactive behavior:
 
 ### Progress Reporting
 
-This workspace requires structured progress updates for multi-step PPT tasks.
+This workspace requires structured progress updates for multi-step PPT tasks and SlideMax-assisted generation flows.
 Each update should include:
 
 - completed stage
@@ -377,7 +428,7 @@ The same pattern is useful for longer installation or configuration flows handle
 
 The AI may only claim the installation is complete when all of the following are true:
 
-- the companion repository exists at the target path
+- the SlideMax companion repository exists at the target path
 - the companion repository remote is canonical `funenc-lab/slidemax` or accepted legacy `funenc-lab/ppt-master`
 - `python3 -m pip install -r requirements.txt` completed successfully
 - `./scripts/validate_workspace.sh` passed
@@ -388,7 +439,7 @@ If any of these are missing, the AI may only report partial progress, not full c
 
 ## Common Failure Handling
 
-### 1. The `ppt-master` Directory Exists but the Remote Does Not Match
+### 1. The SlideMax Directory Exists but the Remote Does Not Match
 
 If the remote is neither `funenc-lab/slidemax` nor the accepted legacy `funenc-lab/ppt-master`, stop and report the mismatch.
 Do not overwrite, delete, or force-change the repository.
@@ -428,9 +479,9 @@ Check these files first:
 When an AI follows this runbook, a useful status report looks like this:
 
 1. environment and paths confirmed
-2. companion repository status
+2. SlideMax companion repository status
 3. workspace validation status
-4. OpenClaw agent registration status
+4. OpenClaw agent registration status, including whether the agent was created or reused
 5. remaining risks or blockers
 
 ## Conclusion
@@ -439,7 +490,7 @@ For an AI executor, the correct order is not “run `./scripts/install_openclaw_
 The correct order is:
 
 1. confirm the environment
-2. install or validate `ppt-master`
+2. install or validate SlideMax
 3. validate this workspace
 4. register the OpenClaw agent
 

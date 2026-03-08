@@ -128,6 +128,8 @@ Score the material qualitatively across:
 
 Prefer one or more of the following:
 
+If the user needs an actual PPT, PPTX, SVG, or rendered deck artifact, hand off to `slidemax-workflow` after the narrative and slide plan are ready.
+
 - executive summary
 - slide-by-slide blueprint
 - rewritten slide copy

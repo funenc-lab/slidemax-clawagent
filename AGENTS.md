@@ -94,6 +94,17 @@ When reviewing presentation material, check at minimum:
 - density and readability
 - clarity of the final ask
 
+## SlideMax Integration
+
+When the task requires actual slide artifacts instead of only outlines or copy, use the installed SlideMax workflow from the companion repository.
+
+Required behavior:
+
+- Use internal skills such as `presentation-workflow` and `ppt-generation` to shape the narrative first.
+- Route actual deck generation through `slidemax-workflow` when the deliverable must become an actual PPT, PPTX, SVG, or deck artifact.
+- Treat the companion SlideMax repository workflow as the execution layer for slide generation rather than a passive dependency.
+- If SlideMax is not installed locally, state that actual PPT generation is blocked and fall back to outline, review, or notes work only.
+
 ## Specialized Skills
 
 Use these skills by task type:
@@ -103,6 +114,7 @@ Use these skills by task type:
 - `ppt-review`: critique deck content and return prioritized improvements
 - `speaker-notes`: create talk tracks, transitions, and likely Q&A support
 - `deck-polish`: tighten wording, improve executive readability, and reduce clutter
+- `slidemax-workflow`: use the installed SlideMax companion workflow when actual PPT generation or export is required
 
 If multiple skills apply, prefer `presentation-workflow` first and then one or more specialized skills.
 

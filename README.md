@@ -12,7 +12,7 @@ This workspace packages a PPT-focused OpenClaw agent with:
 - install and validation scripts for repeatable workspace registration
 - smoke tests for the installation preflight and agent registration flow
 
-This workspace is intended to be installed together with the companion repository `ppt-master`, whose canonical repository address is:
+This workspace is intended to be installed together with the SlideMax companion repository used by the agent for actual PPT generation. The canonical repository address is:
 
 - `https://github.com/funenc-lab/slidemax`
 
@@ -20,14 +20,14 @@ For the full AI-oriented installation runbook, see `docs/openclaw-install.md`.
 
 ## Companion Requirement
 
-Before registering this workspace with OpenClaw, install the companion project `ppt-master` from the canonical repository `funenc-lab/slidemax`.
+Before registering this workspace with OpenClaw, install the SlideMax companion project from the canonical repository `funenc-lab/slidemax`.
 
-According to the official `ppt-master` / `slidemax` repository, the minimum setup includes:
+According to the official SlideMax repository (legacy alias: `ppt-master`), the minimum setup includes:
 
 - `Python 3.8+`
 - `pip install -r requirements.txt`
 
-This repository does not auto-clone or auto-install `ppt-master`; that dependency is documented and guided in `docs/openclaw-install.md`.
+This repository does not auto-clone or auto-install SlideMax; that dependency and its workflow role are documented in `docs/openclaw-install.md`.
 
 ## What it includes
 
@@ -38,10 +38,12 @@ This repository does not auto-clone or auto-install `ppt-master`; that dependenc
   - `skills/ppt-review/SKILL.md`
   - `skills/speaker-notes/SKILL.md`
   - `skills/deck-polish/SKILL.md`
+  - `skills/slidemax-workflow/SKILL.md`
 - A lightweight proactive heartbeat contract: `HEARTBEAT.md`
 - Validation script: `scripts/validate_workspace.sh`
 - Installation script: `scripts/install_openclaw_agent.sh`
 - Install smoke test: `tests/test_install_openclaw_agent.sh`
+- SlideMax companion workflow and local skill entrypoint for actual PPT generation
 - English AI installation guide: `docs/openclaw-install.md`
 
 ## Workspace Layout
@@ -62,6 +64,7 @@ This repository does not auto-clone or auto-install `ppt-master`; that dependenc
 - `skills/ppt-review/SKILL.md`: structured review and prioritized fixes
 - `skills/speaker-notes/SKILL.md`: talk tracks, transitions, and likely Q&A
 - `skills/deck-polish/SKILL.md`: executive-style tightening and readability improvements
+- `skills/slidemax-workflow/SKILL.md`: handoff entrypoint that routes actual PPT generation to the installed SlideMax companion workflow
 
 ### Operational Layer
 
@@ -74,8 +77,8 @@ This repository does not auto-clone or auto-install `ppt-master`; that dependenc
 
 The expected installation sequence is:
 
-1. clone or update the companion repository `ppt-master`
-2. install `ppt-master` Python dependencies
+1. clone or update the SlideMax companion repository
+2. install the SlideMax Python dependencies
 3. validate this workspace
 4. verify `Node.js 22+`
 5. install `openclaw` globally if needed
@@ -100,7 +103,19 @@ You can also specify a custom agent name:
 To point at a non-default companion repository path:
 
 ```bash
+SLIDEMAX_DIR=/absolute/path/to/slidemax ./scripts/install_openclaw_agent.sh
+```
+
+Legacy compatibility override:
+
+```bash
 PPT_MASTER_DIR=/absolute/path/to/ppt-master ./scripts/install_openclaw_agent.sh
+```
+
+Preferred CLI override:
+
+```bash
+./scripts/install_openclaw_agent.sh --slidemax-dir /absolute/path/to/slidemax
 ```
 
 To bypass the companion preflight intentionally:
@@ -159,7 +174,7 @@ Naming rules:
 
 - `Node.js 22+` is available on the target machine
 - `git`, `python3`, `pip`, and `npm` are available
-- the companion repository `ppt-master` can be cloned from the canonical `slidemax` repository on GitHub
+- the SlideMax companion repository can be cloned from GitHub
 - this repository path is the intended OpenClaw workspace location
 - the target agent should remain presentation-focused and low-noise in heartbeat mode
 
