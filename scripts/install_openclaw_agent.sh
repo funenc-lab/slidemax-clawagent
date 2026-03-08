@@ -5,7 +5,8 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 WORKSPACE_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
 DEFAULT_PPT_MASTER_DIR=$(cd "$WORKSPACE_DIR/.." && pwd)/ppt-master
 DEFAULT_AGENT_NAME=ppt-agents
-EXPECTED_PPT_MASTER_REPO=funenc-lab/ppt-master
+CANONICAL_PPT_MASTER_REPO=funenc-lab/slidemax
+LEGACY_PPT_MASTER_REPO=funenc-lab/ppt-master
 
 AGENT_NAME=$DEFAULT_AGENT_NAME
 PPT_MASTER_DIR=${PPT_MASTER_DIR:-$DEFAULT_PPT_MASTER_DIR}
@@ -94,7 +95,10 @@ is_expected_ppt_master_remote() {
   local normalized_remote
   normalized_remote=$(normalize_github_remote "$1")
 
-  [[ "$normalized_remote" == "$EXPECTED_PPT_MASTER_REPO" || "$normalized_remote" == "$EXPECTED_PPT_MASTER_REPO.git" ]]
+  [[ "$normalized_remote" == "$CANONICAL_PPT_MASTER_REPO" ||
+     "$normalized_remote" == "$CANONICAL_PPT_MASTER_REPO.git" ||
+     "$normalized_remote" == "$LEGACY_PPT_MASTER_REPO" ||
+     "$normalized_remote" == "$LEGACY_PPT_MASTER_REPO.git" ]]
 }
 
 ensure_companion_repository() {
@@ -107,7 +111,7 @@ ensure_companion_repository() {
 
   if [[ ! -d "$PPT_MASTER_DIR/.git" ]]; then
     echo "ppt-master companion repository is missing: $PPT_MASTER_DIR" >&2
-    echo "Clone https://github.com/funenc-lab/ppt-master.git or pass --skip-companion-check to bypass this preflight intentionally." >&2
+    echo "Clone https://github.com/funenc-lab/slidemax.git or pass --skip-companion-check to bypass this preflight intentionally." >&2
     exit 1
   fi
 
@@ -119,7 +123,7 @@ ensure_companion_repository() {
   fi
 
   if ! is_expected_ppt_master_remote "$origin_url"; then
-    echo "ppt-master companion repository origin does not match funenc-lab/ppt-master: $origin_url" >&2
+    echo "ppt-master companion repository origin does not match funenc-lab/slidemax or the legacy funenc-lab/ppt-master: $origin_url" >&2
     exit 1
   fi
 

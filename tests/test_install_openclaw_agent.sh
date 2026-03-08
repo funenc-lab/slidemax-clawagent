@@ -77,7 +77,8 @@ main() {
   local log_file=$temp_dir/openclaw.log
   local output_file=$temp_dir/install.out
   local bad_repo=$temp_dir/bad-ppt-master
-  local good_repo=$temp_dir/good-ppt-master
+  local good_repo=$temp_dir/good-slidemax
+  local legacy_repo=$temp_dir/legacy-ppt-master
 
   make_mock_bin "$mock_bin"
   export PATH="$mock_bin:$PATH"
@@ -105,7 +106,7 @@ main() {
 
   mkdir -p "$good_repo"
   git -C "$good_repo" init -q
-  git -C "$good_repo" remote add origin https://github.com/funenc-lab/ppt-master.git
+  git -C "$good_repo" remote add origin https://github.com/funenc-lab/slidemax.git
   touch "$good_repo/requirements.txt"
 
   : >"$log_file"
@@ -113,9 +114,23 @@ main() {
   export MOCK_OPENCLAW_STATE=absent
   if ! run_install "$output_file" test-agent; then
     cat "$output_file" >&2
-    fail "install should succeed when companion repo is valid and agent is absent"
+    fail "install should succeed when companion repo uses the slidemax remote and agent is absent"
   fi
   assert_contains "$log_file" "agents add test-agent --workspace $ROOT_DIR --non-interactive"
+
+  mkdir -p "$legacy_repo"
+  git -C "$legacy_repo" init -q
+  git -C "$legacy_repo" remote add origin https://github.com/funenc-lab/ppt-master.git
+  touch "$legacy_repo/requirements.txt"
+
+  : >"$log_file"
+  export PPT_MASTER_DIR=$legacy_repo
+  export MOCK_OPENCLAW_STATE=absent
+  if ! run_install "$output_file" legacy-agent; then
+    cat "$output_file" >&2
+    fail "install should still allow the legacy ppt-master remote during migration"
+  fi
+  assert_contains "$log_file" "agents add legacy-agent --workspace $ROOT_DIR --non-interactive"
 
   : >"$log_file"
   export PPT_MASTER_DIR=$temp_dir/still-missing

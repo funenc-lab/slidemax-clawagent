@@ -1,101 +1,108 @@
-# OpenClaw PPT Agent AI 安装引导
+# OpenClaw PPT Agent AI Installation Runbook
 
-## 执行摘要
+## Executive Summary
 
-本文档不是给普通终端用户看的简略说明，而是给 **AI 安装执行者** 使用的完整 runbook。
-目标是让 AI 按固定顺序完成以下两件事：
+This document is a full installation runbook for an AI executor, not a short end-user note.
+The goal is to ensure the AI completes the installation in the correct order:
 
-1. 安装配套仓库 `ppt-master`
-2. 将当前仓库注册为 OpenClaw agent workspace
+1. Install the companion repository for `ppt-master`
+2. Register this repository as an OpenClaw agent workspace
 
-其中：
+Key facts:
 
-- `ppt-master` 官方仓库地址：`https://github.com/funenc-lab/ppt-master`
-- 当前仓库负责 OpenClaw agent workspace 本身
-- `scripts/install_openclaw_agent.sh` **不会** 自动克隆或安装 `ppt-master`
-- 因此，AI 不应跳过 `ppt-master` 安装步骤
+- The canonical repository address for `ppt-master` is `https://github.com/funenc-lab/slidemax`
+- The legacy remote `https://github.com/funenc-lab/ppt-master.git` is still accepted during migration
+- This repository contains the OpenClaw workspace, not the `ppt-master` application itself
+- `scripts/install_openclaw_agent.sh` does not clone `ppt-master`
+- `scripts/install_openclaw_agent.sh` does not install the Python dependencies for `ppt-master`
 
-## 文档定位
+## Document Role
 
-当 AI 按本文档执行安装时，应把自己视为“受控执行器”，而不是自由发挥的助手。
-这意味着：
+When an AI follows this document, it should behave like a controlled installer rather than an improvisational assistant.
 
-- 必须按顺序执行，不跳步
-- 每一步失败都要立刻停止并汇报
-- 必须区分“官方事实”和“本地建议”
-- 必须记录最终使用的绝对路径
-- 在完成前必须执行验证命令，不能只根据代码变更推断成功
+That means:
 
-## 事实、假设与建议
+- execute the steps in order
+- stop immediately on failure
+- separate confirmed facts from local recommendations
+- record the final absolute paths being used
+- verify the result with commands before claiming completion
 
-### 已确认事实
+## Facts, Assumptions, and Recommendations
 
-以下内容来自当前仓库脚本和 `ppt-master` 官方仓库：
+### Confirmed Facts
 
-- 当前仓库安装脚本会先校验 workspace，再校验 `ppt-master` companion repo 的路径、origin 和 `requirements.txt`，然后检查 `Node.js 22+`，按需安装 `openclaw`，最后注册 agent workspace
-- `ppt-master` 官方 README 当前给出的最低安装前提是：`Python 3.8+`
-- `ppt-master` 官方 README 当前给出的依赖安装命令是：`pip install -r requirements.txt`
-- `funenc-lab/ppt-master` 的 Git clone 地址当前可用
+The following facts are confirmed from the current repository and the companion repository instructions:
 
-### 安装假设
+- The workspace install script validates the workspace first
+- The workspace install script validates the companion repository path, origin, and `requirements.txt`
+- The workspace install script requires `Node.js 22+`
+- The workspace install script installs `openclaw` only when it is missing
+- The companion repository requires at least `Python 3.8+`
+- The companion repository installs dependencies with `pip install -r requirements.txt`
+- The canonical GitHub repository for the companion project is `funenc-lab/slidemax`
 
-执行本文档时，默认采用以下假设：
+### Assumptions
 
-- 当前 shell 具备 `git`、`python3`、`pip`、`node`、`npm`
-- 当前仓库已经存在于本地，且当前工作目录就是本仓库根目录
-- 安装执行者有网络访问能力，可以访问 GitHub 与 npm
-- 如果用户没有提供 `ppt-master` 安装目录，则把它放在当前仓库的同级目录
+This runbook assumes:
 
-### 本地建议
+- `git`, `python3`, `pip`, `node`, and `npm` are available
+- this workspace repository already exists locally
+- the current working directory is the root of this workspace
+- network access to GitHub and npm is available
+- if the user does not provide a custom companion path, the companion repository will live next to this workspace
 
-以下是为了让 AI 执行更稳妥而增加的建议，不是 `ppt-master` 官方 README 的硬性要求：
+### Local Recommendations
 
-- 优先把 `ppt-master` 安装在当前仓库同级目录，便于后续定位
-- 如果用户没有特别要求，AI 应先尝试复用已有仓库，再决定是否重新 clone
-- 如果发现已有 `ppt-master` 仓库的远程地址不是 `funenc-lab/ppt-master`，应先停下来汇报，而不是擅自覆盖
+The following recommendations improve safety, but are not hard requirements from the companion repository itself:
 
-## 安装目标
+- keep the local companion directory name as `ppt-master` unless the user requested something else
+- reuse an existing local clone when its remote is valid
+- stop and report if the existing remote is neither the canonical `funenc-lab/slidemax` remote nor the legacy `funenc-lab/ppt-master` remote
 
-安装完成后，应满足以下状态：
+## Installation Success Criteria
 
-- 当前仓库仍位于其原始路径
-- 同级目录存在 `ppt-master` 仓库，且来源为 `https://github.com/funenc-lab/ppt-master.git`
-- `ppt-master` 依赖安装命令执行成功
-- 当前仓库的 `./scripts/validate_workspace.sh` 执行通过
-- 当前仓库的 `./tests/test_workspace_structure.sh` 执行通过
-- `openclaw agents list` 中可以看到当前 agent
+The installation is considered complete only when all of the following are true:
 
-## 输出目录规范
+- this workspace remains at its intended local path
+- the companion repository exists at the chosen path
+- the companion repository remote is canonical `funenc-lab/slidemax` or accepted legacy `funenc-lab/ppt-master`
+- the companion repository dependency installation command succeeds
+- `./scripts/validate_workspace.sh` succeeds
+- `./tests/test_workspace_structure.sh` succeeds
+- `openclaw agents list` shows the agent, or the install script confirms that it is already registered
 
-除非用户明确指定其他路径，AI 在当前 workspace 中应统一使用 `outputs/` 作为生成物根目录。
+## Output Directory Convention
 
-推荐目录结构：
+Unless the user explicitly requests another location, generated reusable artifacts should be written under the repository-root `outputs/` directory.
+
+Recommended structure:
 
 - `outputs/decks/`
-  - 存放 slide blueprint、改写后的 deck 文案、结构化大纲等 deck 主产物
+  - slide blueprints, rewritten deck copy, deck-ready outlines
 - `outputs/reviews/`
-  - 存放 deck review、评分结果、问题清单、整改建议等审稿产物
+  - review reports, scored rubrics, issue lists, improvement recommendations
 - `outputs/speaker-notes/`
-  - 存放讲稿、过渡语、强调点、Q&A 准备等讲述支持材料
+  - talk tracks, transitions, emphasis cues, Q&A preparation
 - `outputs/assets/`
-  - 存放导出的图片、图表、PDF、附件或其他演示相关资产
+  - exported images, charts, PDFs, and presentation attachments
 - `outputs/tmp/`
-  - 存放可再生成的中间文件、草稿文件、临时转换文件
+  - disposable intermediate files that can be regenerated
 
-命名规则：
+Naming rules:
 
-- 路径名与文件名使用英文，不使用中文
-- 优先使用小写加连字符的命名方式
-- 每个任务放在自己的目录中，推荐格式为 `YYYY-MM-DD-topic-slug`
-- 除非用户明确要求，否则不要把生成物直接写到仓库根目录
-- 除非任务本身就是在改文档或代码，否则不要把生成物写入 `docs/`、`scripts/`、`skills/`
+- use English-only file and directory names
+- prefer lowercase kebab-case names
+- keep each task in its own `YYYY-MM-DD-topic-slug` directory
+- do not write generated deliverables to the repository root unless the user explicitly asks for that
+- do not write generated deliverables into `docs/`, `scripts/`, or `skills/` unless the task itself is a documentation or code change
 
-版本控制规则：
+Version-control rules:
 
-- `outputs/` 目录下的内容默认视为生成物，不应作为稳定源码提交
-- AI 在安装完成后可以初始化这些目录，但不应把它们当成核心安装成功条件
+- `outputs/` is treated as generated content rather than stable source
+- creating the output directories is recommended, but not a hard requirement for installation success
 
-示例：
+Example:
 
 ```text
 outputs/
@@ -111,11 +118,11 @@ outputs/
     2026-03-08-import-scratch/
 ```
 
-## AI 执行顺序
+## AI Execution Order
 
-### 第 0 步：确定路径
+### Step 0: Resolve Paths
 
-AI 应先在当前仓库根目录中计算以下路径：
+First compute the local paths:
 
 ```bash
 WORKSPACE_DIR=$(pwd)
@@ -123,16 +130,16 @@ PARENT_DIR=$(dirname "$WORKSPACE_DIR")
 PPT_MASTER_DIR="${PARENT_DIR}/ppt-master"
 ```
 
-然后在汇报中明确写出：
+Then report:
 
-- 当前 workspace 路径
-- 计划使用的 `ppt-master` 路径
+- the current workspace path
+- the chosen companion repository path
 
-如果用户已明确要求其他安装目录，应优先使用用户指定目录。
+If the user explicitly provided a custom companion path, use that path instead.
 
-### 第 1 步：检查基础工具
+### Step 1: Check Required Tools
 
-AI 应先检查这些命令是否存在：
+Verify the commands exist:
 
 ```bash
 command -v git
@@ -142,7 +149,7 @@ command -v node
 command -v npm
 ```
 
-再检查关键版本：
+Then check the key versions:
 
 ```bash
 python3 --version
@@ -150,57 +157,56 @@ node --version
 npm --version
 ```
 
-判定规则：
+Rules:
 
-- `ppt-master` 需要 `Python 3.8+`
-- 当前 workspace 的 OpenClaw 安装脚本要求 `Node.js 22+`
+- `ppt-master` requires `Python 3.8+`
+- the workspace installer requires `Node.js 22+`
 
-如果 `Node.js` 主版本号低于 `22`，AI 不应继续执行当前仓库安装脚本。
-如果 `Python` 版本低于 `3.8`，AI 不应继续执行 `ppt-master` 安装。
+If `Node.js` is below `22`, do not run the workspace install script.
+If `Python` is below `3.8`, do not proceed with the companion repository installation.
 
-### 第 2 步：安装或复用 `ppt-master`
+### Step 2: Install or Reuse `ppt-master`
 
-先检查目标路径是否已有仓库：
+Check whether the target path already contains a Git repository:
 
 ```bash
 if [ -d "$PPT_MASTER_DIR/.git" ]; then
   git -C "$PPT_MASTER_DIR" remote get-url origin
 else
-  git clone https://github.com/funenc-lab/ppt-master.git "$PPT_MASTER_DIR"
+  git clone https://github.com/funenc-lab/slidemax.git "$PPT_MASTER_DIR"
 fi
 ```
 
-执行规则：
+Rules:
 
-- 如果目录不存在，则直接 clone
-- 如果目录已存在且远程地址就是 `https://github.com/funenc-lab/ppt-master.git`，则可以复用
-- 如果目录已存在但远程地址不是目标地址，应停止并汇报冲突
+- if the directory does not exist, clone the canonical repository
+- if the existing remote is `https://github.com/funenc-lab/slidemax.git`, reuse it
+- if the existing remote is the legacy `https://github.com/funenc-lab/ppt-master.git`, the current installer still accepts it during migration
+- if the existing remote is neither canonical nor legacy, stop and report the conflict
 
-AI 不应在发现远程不一致时擅自删除目录或强制覆盖。
+Do not delete, overwrite, or force-reset an unexpected repository.
 
-### 第 3 步：安装 `ppt-master` 依赖
+### Step 3: Install `ppt-master` Dependencies
 
-根据 `ppt-master` 官方 README，最低依赖安装方式为：
+According to the companion repository instructions, the minimum dependency installation step is:
 
 ```bash
 cd "$PPT_MASTER_DIR"
 python3 -m pip install -r requirements.txt
 ```
 
-执行要求：
+Execution requirements:
 
-- 必须在 `ppt-master` 仓库根目录执行
-- 必须使用成功退出码作为判定依据
-- 如果命令失败，AI 必须保留原始报错并停止后续步骤
+- run the command from the companion repository root
+- treat the process exit code as the decision point
+- stop immediately if the command fails
+- preserve the original error output in the report
 
-说明：
+`python3 -m pip` is used here to reduce interpreter ambiguity while remaining equivalent to the documented `pip install -r requirements.txt` workflow.
 
-- 这里使用 `python3 -m pip` 是为了减少环境歧义
-- 这属于对官方 `pip install -r requirements.txt` 的等价执行方式
+### Step 4: Return to the Workspace and Validate It
 
-### 第 4 步：返回当前 workspace 并校验结构
-
-安装完 `ppt-master` 后，回到当前仓库：
+After the companion repository is ready, return to this workspace:
 
 ```bash
 cd "$WORKSPACE_DIR"
@@ -208,66 +214,67 @@ cd "$WORKSPACE_DIR"
 ./tests/test_workspace_structure.sh
 ```
 
-如果任一命令失败，AI 不应继续注册 agent。
+If either command fails, do not continue to agent registration.
 
-### 第 5 步：安装并注册 OpenClaw agent workspace
+### Step 5: Install and Register the OpenClaw Workspace
 
-确认结构校验通过后，执行：
+Run the default install command:
 
 ```bash
 ./scripts/install_openclaw_agent.sh
 ```
 
-如果用户提供了自定义 agent 名称，则执行：
+If the user provided a custom agent name:
 
 ```bash
 ./scripts/install_openclaw_agent.sh my-ppt-agent
 ```
 
-如果 `ppt-master` 不在默认同级目录，可以显式指定：
+If the companion repository is not located at the default sibling path:
 
 ```bash
 PPT_MASTER_DIR=/absolute/path/to/ppt-master ./scripts/install_openclaw_agent.sh
 ```
 
-如果你明确知道自己要绕过 companion preflight，可显式执行：
+If you intentionally need to bypass companion preflight validation in a controlled exception case:
 
 ```bash
 ./scripts/install_openclaw_agent.sh --skip-companion-check my-ppt-agent
 ```
 
-注意：`--skip-companion-check` 只应用于明确受控的例外场景，不应作为默认安装路径。
+`--skip-companion-check` should not be used as the default path.
 
-当前脚本内部会依次完成：
+The script currently performs these actions internally:
 
-1. 调用 `./scripts/validate_workspace.sh`
-2. 校验 `ppt-master` companion repo 的路径、origin 和 `requirements.txt`
-3. 检查 `Node.js 22+`
-4. 如缺失则执行 `npm install -g openclaw@latest`
-5. 检查 agent 是否已经注册
-6. 注册当前仓库为 OpenClaw workspace
+1. run `./scripts/validate_workspace.sh`
+2. validate the companion repository path, origin, and `requirements.txt`
+3. verify `Node.js 22+`
+4. install `openclaw` if it is missing
+5. check whether the agent is already registered
+6. register this workspace with OpenClaw
 
-AI 不需要重复实现这些逻辑，但必须知道脚本**不会**自动 clone `ppt-master`，也**不会**自动安装其 Python 依赖。脚本现在只负责在 companion repo 缺失或配置错误时尽早失败。
+The AI does not need to reimplement these steps, but it must remember that the script does not clone `ppt-master` and does not install the Python dependencies for `ppt-master`.
+The script only fails early when the companion repository is missing or incorrectly configured.
 
-### 第 6 步：安装后验证
+### Step 6: Post-Install Verification
 
-注册后，必须执行以下命令验证最终结果：
+After registration, verify the final state with:
 
 ```bash
 openclaw agents list
 ```
 
-推荐继续执行：
+Recommended follow-up:
 
 ```bash
 openclaw onboard --install-daemon
 ```
 
-如果用户希望长期运行该 agent，这一步通常值得保留在建议动作中。
+If the user wants this agent to run more reliably over time, this is a reasonable next step.
 
-### 第 7 步：初始化输出目录（推荐）
+### Step 7: Initialize Output Directories (Recommended)
 
-安装成功后，AI 可以初始化标准输出目录：
+After installation, the AI may initialize the standard output directories:
 
 ```bash
 mkdir -p \
@@ -278,126 +285,135 @@ mkdir -p \
   "$WORKSPACE_DIR/outputs/tmp"
 ```
 
-说明：
+Notes:
 
-- 这一步是推荐动作，不是安装成功的硬条件
-- 如果用户指定了其他输出路径，应优先遵循用户要求
-- 如果当前任务只是安装，不需要立即生成任何 deck 产物，也可以只记录目录规范而不创建目录
+- this is recommended, not required for installation success
+- if the user specified a different output path, use the user preference
+- if the task is only installation, creating the directories can be skipped as long as the convention is recorded
 
-## 当前仓库文件职责
+## Workspace File Responsibilities
 
-### 根目录 prompt 文件
+### Root Prompt Files
 
 - `AGENTS.md`
-  - 主规则文件
-  - 定义默认语言、输出契约、审稿标准、技能选择规则、heartbeat 行为与 progress reporting 规则
+  - the top-level rules file
+  - defines default language, output contract, review standards, skill routing, heartbeat behavior, and progress reporting
 
 - `SOUL.md`
-  - 定义 agent 的人格与表达风格
+  - defines the agent persona and communication style
 
 - `TOOLS.md`
-  - 定义工具使用规则、验证边界和 heartbeat 安全约束
+  - defines tool usage constraints, validation boundaries, and heartbeat safety rules
 
 - `USER.md`
-  - 定义用户偏好，例如默认中文、先摘要后细节
+  - defines user preferences such as default Chinese responses and summary-first delivery
 
 - `IDENTITY.md`
-  - 定义 agent 名称、角色、领域定位和工作原则
+  - defines the agent name, role, domain, and working principles
 
 - `HEARTBEAT.md`
-  - 定义主动提醒的最小触发条件
-  - 在无需提醒时必须返回 `HEARTBEAT_OK`
+  - defines the minimum trigger conditions for proactive follow-up
+  - requires `HEARTBEAT_OK` when no action is needed
 
-### 技能文件
+### Skill Files
 
 - `skills/presentation-workflow/SKILL.md`
-  - 负责创建、审稿、改写、转换等演示工作流入口
+  - the workflow entry point for creation, review, rewrite, and conversion tasks
 
 - `skills/ppt-generation/SKILL.md`
-  - 负责从原始资料生成 message-first deck blueprint
+  - generates message-first deck blueprints from raw inputs
 
 - `skills/ppt-review/SKILL.md`
-  - 负责结构化审稿与问题优先级排序
+  - reviews presentation material and prioritizes issues
 
 - `skills/speaker-notes/SKILL.md`
-  - 负责讲稿、过渡语、强调点和可能问答
+  - produces talk tracks, transitions, emphasis cues, and likely Q&A
 
 - `skills/deck-polish/SKILL.md`
-  - 负责表达收紧、标题强化与高管化润色
+  - tightens wording, sharpens titles, and improves executive readability
 
-### 运维脚本
+### Operational Scripts
 
 - `scripts/install_openclaw_agent.sh`
-  - 校验 workspace
-  - 校验 `ppt-master` companion repo
-  - 检查 `Node.js 22+`
-  - 按需安装 `openclaw`
-  - 注册当前仓库为 agent workspace
+  - validates the workspace
+  - validates the companion repository
+  - checks `Node.js 22+`
+  - installs `openclaw` if needed
+  - registers the workspace as an agent
 
 - `scripts/validate_workspace.sh`
-  - 检查必需文件是否存在
-  - 检查 `HEARTBEAT.md`、progress reporting 等关键约束是否被写入
+  - checks required files and critical prompt constraints
 
 - `tests/test_workspace_structure.sh`
-  - 做一次轻量结构回归检查
+  - runs a lightweight structure regression check
 
-## HEARTBEAT 与 Progress Reporting 说明
+- `tests/test_install_openclaw_agent.sh`
+  - runs a behavior-level smoke test for companion preflight and agent registration logic
+
+## HEARTBEAT and Progress Reporting
 
 ### HEARTBEAT
 
-`HEARTBEAT.md` 的目标不是增加打扰频率，而是约束主动行为的边界：
+The goal of `HEARTBEAT.md` is not to increase interruption frequency.
+It exists to constrain proactive behavior:
 
-- 没有明确 follow-up 需求时，返回 `HEARTBEAT_OK`
-- 只有临近交付、用户要求提醒、或缺少关键输入时才允许主动提醒
-- 主动提醒必须短、明确、低噪音
+- when no reliable follow-up is needed, return `HEARTBEAT_OK`
+- only send proactive follow-up when a delivery is close, the user explicitly requested follow-up, or a critical missing input blocks progress
+- proactive messages must be short, concrete, and low-noise
 
 ### Progress Reporting
 
-当前 workspace 明确要求：
+This workspace requires structured progress updates for multi-step PPT tasks.
+Each update should include:
 
-- 对多步骤 PPT 任务进行阶段性 progress 汇报
-- 汇报内容至少包含：已完成阶段、当前阶段、下一阶段、阻塞项（如有）
-- 这项约束同样适用于 AI 在较长安装或配置任务中的进度汇报
+- completed stage
+- current stage
+- next stage
+- blocker, if one exists
 
-## AI 完成判定
+The same pattern is useful for longer installation or configuration flows handled by an AI executor.
 
-只有同时满足以下条件，AI 才能宣称安装完成：
+## AI Completion Gate
 
-- `ppt-master` 已存在于目标路径，且来源正确
-- `python3 -m pip install -r requirements.txt` 已成功执行
-- `./scripts/validate_workspace.sh` 已通过
-- `./tests/test_workspace_structure.sh` 已通过
-- `openclaw agents list` 能看到目标 agent，或安装脚本明确报告已存在同名 agent
+The AI may only claim the installation is complete when all of the following are true:
 
-如果缺少其中任意一项，AI 只能报告“已完成部分步骤”，不能报告“安装完成”。
+- the companion repository exists at the target path
+- the companion repository remote is canonical `funenc-lab/slidemax` or accepted legacy `funenc-lab/ppt-master`
+- `python3 -m pip install -r requirements.txt` completed successfully
+- `./scripts/validate_workspace.sh` passed
+- `./tests/test_workspace_structure.sh` passed
+- `openclaw agents list` shows the target agent, or the installer reported that it was already registered
 
-## 常见问题与处理原则
+If any of these are missing, the AI may only report partial progress, not full completion.
 
-### 1. `ppt-master` 目录已存在，但远程地址不一致
+## Common Failure Handling
 
-处理原则：停止并汇报，不覆盖，不删除，不强行改 remote。
+### 1. The `ppt-master` Directory Exists but the Remote Does Not Match
 
-### 2. `python3 -m pip install -r requirements.txt` 失败
+If the remote is neither `funenc-lab/slidemax` nor the accepted legacy `funenc-lab/ppt-master`, stop and report the mismatch.
+Do not overwrite, delete, or force-change the repository.
 
-处理原则：保留完整错误输出，停止继续安装当前 workspace。
-原因可能包括：
+### 2. `python3 -m pip install -r requirements.txt` Fails
 
-- 网络不可达
-- Python 版本不兼容
-- 本地编译依赖缺失
-- pip 配置异常
+Stop immediately and preserve the full error output.
+Common causes include:
 
-### 3. `Node.js` 版本低于 `22`
+- network failure
+- incompatible Python version
+- missing native build dependencies
+- broken pip configuration
 
-处理原则：停止执行 `./scripts/install_openclaw_agent.sh`，先升级 Node.js。
+### 3. `Node.js` Is Below `22`
 
-### 4. `npm install -g openclaw@latest` 失败
+Do not run `./scripts/install_openclaw_agent.sh` until Node.js is upgraded.
 
-处理原则：保留完整错误输出，停止注册流程。
+### 4. `npm install -g openclaw@latest` Fails
 
-### 5. 结构校验失败
+Stop the registration flow and preserve the full error output.
 
-优先检查：
+### 5. Workspace Validation Fails
+
+Check these files first:
 
 - `AGENTS.md`
 - `HEARTBEAT.md`
@@ -407,23 +423,24 @@ mkdir -p \
 - `docs/openclaw-install.md`
 - `scripts/install_openclaw_agent.sh`
 
-## 推荐汇报模板
+## Recommended Reporting Shape
 
-当 AI 按本文档执行安装时，推荐输出如下结构：
+When an AI follows this runbook, a useful status report looks like this:
 
-1. 已确认环境与路径
-2. `ppt-master` 安装状态
-3. 当前 workspace 校验状态
-4. OpenClaw agent 注册状态
-5. 剩余风险或阻塞
+1. environment and paths confirmed
+2. companion repository status
+3. workspace validation status
+4. OpenClaw agent registration status
+5. remaining risks or blockers
 
-## 结论
+## Conclusion
 
-对 AI 来说，正确顺序不是“直接运行 `./scripts/install_openclaw_agent.sh`”，而是：
+For an AI executor, the correct order is not “run `./scripts/install_openclaw_agent.sh` immediately”.
+The correct order is:
 
-1. 先确认环境
-2. 先安装 `ppt-master`
-3. 再校验当前 workspace
-4. 最后注册 OpenClaw agent
+1. confirm the environment
+2. install or validate `ppt-master`
+3. validate this workspace
+4. register the OpenClaw agent
 
-如果 AI 跳过第 2 步，那么当前安装流程就是不完整的。
+If step 2 is skipped, the installation is incomplete.

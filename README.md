@@ -12,17 +12,17 @@ This workspace packages a PPT-focused OpenClaw agent with:
 - install and validation scripts for repeatable workspace registration
 - smoke tests for the installation preflight and agent registration flow
 
-This workspace is intended to be installed together with the companion repository `ppt-master`:
+This workspace is intended to be installed together with the companion repository `ppt-master`, whose canonical repository address is:
 
-- `https://github.com/funenc-lab/ppt-master`
+- `https://github.com/funenc-lab/slidemax`
 
 For the full AI-oriented installation runbook, see `docs/openclaw-install.md`.
 
 ## Companion Requirement
 
-Before registering this workspace with OpenClaw, install the companion project `ppt-master` from `funenc-lab/ppt-master`.
+Before registering this workspace with OpenClaw, install the companion project `ppt-master` from the canonical repository `funenc-lab/slidemax`.
 
-According to the official `ppt-master` repository, the minimum setup includes:
+According to the official `ppt-master` / `slidemax` repository, the minimum setup includes:
 
 - `Python 3.8+`
 - `pip install -r requirements.txt`
@@ -42,7 +42,7 @@ This repository does not auto-clone or auto-install `ppt-master`; that dependenc
 - Validation script: `scripts/validate_workspace.sh`
 - Installation script: `scripts/install_openclaw_agent.sh`
 - Install smoke test: `tests/test_install_openclaw_agent.sh`
-- Chinese AI installation guide: `docs/openclaw-install.md`
+- English AI installation guide: `docs/openclaw-install.md`
 
 ## Workspace Layout
 
@@ -140,13 +140,13 @@ Naming rules:
 
 - `Node.js 22+` is available on the target machine
 - `git`, `python3`, `pip`, and `npm` are available
-- the companion repository `ppt-master` can be cloned from GitHub
+- the companion repository `ppt-master` can be cloned from the canonical `slidemax` repository on GitHub
 - this repository path is the intended OpenClaw workspace location
 - the target agent should remain presentation-focused and low-noise in heartbeat mode
 
 ## Extension Points
 
-- add optional Python dependency health checks for the companion `ppt-master` repository
+- remove the legacy `funenc-lab/ppt-master` fallback after the migration window closes
 - add richer `.pptx` handling or export workflows
 - add more domain skills such as board updates, sales pitches, or technical design reviews
 - add troubleshooting, upgrade, or uninstall guidance to `docs/openclaw-install.md`

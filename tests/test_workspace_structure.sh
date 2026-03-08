@@ -112,8 +112,8 @@ if ! grep -qi 'ppt-master' "$ROOT_DIR/docs/openclaw-install.md"; then
   exit 1
 fi
 
-if ! grep -q 'https://github.com/funenc-lab/ppt-master' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo 'Install docs should reference the funenc-lab/ppt-master repository URL.' >&2
+if ! grep -q 'https://github.com/funenc-lab/slidemax' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo 'Install docs should reference the canonical funenc-lab/slidemax repository URL.' >&2
   exit 1
 fi
 
