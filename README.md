@@ -111,35 +111,21 @@ To bypass the companion preflight intentionally:
 
 ## AI Install Prompt
 
-If you want an AI coding agent to perform the installation, copy the following prompt command and give it to the agent directly:
+If you want an AI coding agent to perform the installation, copy the following Markdown prompt and give it to the agent directly:
 
-```bash
-cat <<'PROMPT'
-Use the following GitHub files as the source of truth:
-- https://raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/README.md
-- https://raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md
+```markdown
+Treat the following file as the installation runbook (execution prompt file) and follow it exactly:
+https://raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md
 
-Treat `docs/openclaw-install.md` as the execution prompt file.
-Read it completely, then perform the installation step by step exactly according to that file.
-Do not improvise, do not skip steps, and do not replace the documented order with your own workflow.
+Read it completely and execute the installation exactly as written in that file.
+Do not skip steps and do not change the documented order.
 
-Execution requirements:
-- Use `https://github.com/funenc-lab/slidemax` as the canonical companion repository for `ppt-master`.
-- If no custom companion path is provided, install it next to this workspace in a local directory named `ppt-master`.
-- Install the companion Python dependencies with `python3 -m pip install -r requirements.txt`.
-- Run `./scripts/validate_workspace.sh`.
-- Run `./tests/test_workspace_structure.sh`.
-- Run `./tests/test_install_openclaw_agent.sh`.
-- Run `./scripts/install_openclaw_agent.sh`.
-- Verify the final state with `openclaw agents list`.
-
-Report back with:
+After execution, report:
 - the exact workspace path
 - the exact companion path
 - the validation results
 - whether the agent was newly registered or already existed
 - any blocker or failure output
-PROMPT
 ```
 
 ## Quick Validate
