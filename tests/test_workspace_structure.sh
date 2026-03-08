@@ -132,4 +132,14 @@ if ! grep -qi 'AI' "$ROOT_DIR/docs/openclaw-install.md"; then
   exit 1
 fi
 
+if ! grep -q 'AI Install Prompt' "$ROOT_DIR/README.md"; then
+  echo 'README.md should include a copy-ready AI install prompt.' >&2
+  exit 1
+fi
+
+if ! grep -q 'raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md' "$ROOT_DIR/README.md"; then
+  echo 'README.md should point AI installers to the GitHub file URL for the install runbook.' >&2
+  exit 1
+fi
+
 echo 'Workspace structure test passed.'

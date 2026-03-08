@@ -109,6 +109,29 @@ To bypass the companion preflight intentionally:
 ./scripts/install_openclaw_agent.sh --skip-companion-check my-ppt-agent
 ```
 
+## AI Install Prompt
+
+If you want an AI coding agent to perform the installation, copy the following prompt command and give it to the agent:
+
+```bash
+cat <<'PROMPT'
+Use the following GitHub file URLs as the source of truth before executing any installation step:
+- https://raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/README.md
+- https://raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md
+
+Execute the installation exactly as written in those files.
+Use `https://github.com/funenc-lab/slidemax` as the canonical companion repository for `ppt-master`.
+If no custom companion path is provided, install it next to this workspace in a local directory named `ppt-master`.
+Install the companion Python dependencies with `python3 -m pip install -r requirements.txt`.
+Then run:
+- `./scripts/validate_workspace.sh`
+- `./tests/test_workspace_structure.sh`
+- `./tests/test_install_openclaw_agent.sh`
+- `./scripts/install_openclaw_agent.sh`
+Finally verify with `openclaw agents list` and report the exact workspace path, companion path, validation results, and any blocker.
+PROMPT
+```
+
 ## Quick Validate
 
 ```bash
