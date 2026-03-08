@@ -320,21 +320,21 @@ openclaw agents list --json
 Direct add path when the agent does not exist:
 
 ```bash
-openclaw agents add ppt-agents --workspace "$WORKSPACE_DIR" --non-interactive
+openclaw agents add ppt-agent --workspace "$WORKSPACE_DIR" --non-interactive
 ```
 
 Direct replace path when the agent exists but points to a different workspace:
 
 ```bash
-openclaw agents delete ppt-agents
-openclaw agents add ppt-agents --workspace "$WORKSPACE_DIR" --non-interactive
+openclaw agents delete ppt-agent
+openclaw agents add ppt-agent --workspace "$WORKSPACE_DIR" --non-interactive
 ```
 
 When this add or replace action succeeds, the workspace-local files under `skills/` become available to the agent through the registered workspace.
 OpenClaw exposes them as workspace-specific skills and loads their `SKILL.md` instructions on demand.
 No separate per-skill installation command is required.
 
-If the user provided a custom agent name, replace `ppt-agents` with that name in the inspection, delete, and add commands.
+If the user provided a custom agent name, replace `ppt-agent` with that name in the inspection, delete, and add commands.
 
 Only determine the local OpenClaw agent status when Step 6 or Step 7 is actually reached.
 Do not infer or guess the agent status from earlier workspace, dependency, or validation steps.

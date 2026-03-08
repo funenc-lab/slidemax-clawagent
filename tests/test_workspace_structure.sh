@@ -103,8 +103,8 @@ for required_text in \
   'If the installation stops before the OpenClaw registration or verification step' \
   'the agent should decide the next action based on the actual local OpenClaw state' \
   'openclaw agents list --json' \
-  'openclaw agents add ppt-agents --workspace' \
-  'openclaw agents delete ppt-agents' \
+  'openclaw agents add ppt-agent --workspace' \
+  'openclaw agents delete ppt-agent' \
   'already points to `WORKSPACE_DIR`' \
   'points to a different workspace' \
   'There is no separate skill installation command for this agent' \

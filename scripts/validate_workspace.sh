@@ -81,8 +81,8 @@ for required_text in \
   'test -f ./tests/test_workspace_structure.sh' \
   'SLIDEMAX_DIR' \
   'openclaw agents list --json' \
-  'openclaw agents add ppt-agents --workspace' \
-  'openclaw agents delete ppt-agents' \
+  'openclaw agents add ppt-agent --workspace' \
+  'openclaw agents delete ppt-agent' \
   'already points to `WORKSPACE_DIR`' \
   'points to a different workspace' \
   'Only determine the local OpenClaw agent status when Step 6 or Step 7 is actually reached' \

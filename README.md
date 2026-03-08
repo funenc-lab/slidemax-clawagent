@@ -98,7 +98,7 @@ For a direct manual setup after the prerequisites are ready, use the local-state
 ./tests/test_workspace_structure.sh
 command -v openclaw >/dev/null 2>&1 || npm install -g openclaw@latest
 openclaw agents list --json
-openclaw agents add ppt-agents --workspace "$(pwd)" --non-interactive
+openclaw agents add ppt-agent --workspace "$(pwd)" --non-interactive
 openclaw agents list
 ```
 
