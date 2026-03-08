@@ -14,6 +14,8 @@ Use this skill when the user asks for any of the following:
 - build speaker notes, talking points, or demo flow
 - transform source material into presentation-ready structure
 
+If the user explicitly asks for an actual PPT, PPTX, SVG, or generated deck artifact, treat `slidemax-workflow` as the primary skill for that task. Use this skill only to prepare or repair the narrative inputs that `slidemax-workflow` needs before generation.
+
 ## Goals
 
 Turn raw information into a presentation that is clear, persuasive, and executable.
@@ -128,7 +130,7 @@ Score the material qualitatively across:
 
 Prefer one or more of the following:
 
-If the user needs an actual PPT, PPTX, SVG, or rendered deck artifact, hand off to `slidemax-workflow` after the narrative and slide plan are ready.
+If the user needs an actual PPT, PPTX, SVG, or rendered deck artifact, keep `slidemax-workflow` as the primary skill and use this skill only to prepare the narrative and slide plan that generation requires.
 
 - executive summary
 - slide-by-slide blueprint

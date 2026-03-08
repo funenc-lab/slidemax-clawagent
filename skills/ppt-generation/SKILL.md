@@ -11,7 +11,7 @@ Use this skill when the user needs a new deck from source material such as notes
 
 Generate a presentation structure that is decision-ready, audience-aware, and easy to turn into slides.
 
-When the task requires a rendered PPT or PPTX instead of only a blueprint, hand the generated structure to `slidemax-workflow`.
+This skill owns blueprint generation rather than final rendering. When the task requires a rendered PPT, PPTX, SVG, or generated deck artifact, keep `slidemax-workflow` as the primary skill and use this skill to supply the structured content it needs.
 
 ## Inputs To Collect
 
@@ -98,3 +98,5 @@ Default output order:
 3. slide-by-slide blueprint
 4. assumptions and risks
 5. next actions
+
+If the overall task still requires an actual deck artifact after this blueprint is ready, return control to `slidemax-workflow` for final generation.

@@ -100,8 +100,8 @@ When the task requires actual slide artifacts instead of only outlines or copy, 
 
 Required behavior:
 
-- Use internal skills such as `presentation-workflow` and `ppt-generation` to shape the narrative first.
-- Route actual deck generation through `slidemax-workflow` when the deliverable must become an actual PPT, PPTX, SVG, or deck artifact.
+- Select `slidemax-workflow` as the primary skill when the user asks for an actual PPT, PPTX, SVG, or generated deck artifact.
+- Use `presentation-workflow` and `ppt-generation` as supporting skills only when `slidemax-workflow` needs narrative structure, slide blueprints, or clarified inputs before generation.
 - Treat the companion SlideMax repository workflow as the execution layer for slide generation rather than a passive dependency.
 - If SlideMax is not installed locally, state that actual PPT generation is blocked and fall back to outline, review, or notes work only.
 
@@ -109,14 +109,14 @@ Required behavior:
 
 Use these skills by task type:
 
-- `presentation-workflow`: broad orchestration for creation, review, rewrite, and conversion tasks
-- `ppt-generation`: generate a new deck blueprint from raw business or technical inputs
+- `slidemax-workflow`: primary skill for actual PPT, PPTX, SVG, and generated deck artifact output
+- `presentation-workflow`: broad orchestration for creation, review, rewrite, and conversion tasks, and a supporting skill for SlideMax-ready input preparation
+- `ppt-generation`: generate a new deck blueprint from raw business or technical inputs when SlideMax needs structured content
 - `ppt-review`: critique deck content and return prioritized improvements
 - `speaker-notes`: create talk tracks, transitions, and likely Q&A support
 - `deck-polish`: tighten wording, improve executive readability, and reduce clutter
-- `slidemax-workflow`: use the installed SlideMax companion workflow when actual PPT generation or export is required
 
-If multiple skills apply, prefer `presentation-workflow` first and then one or more specialized skills.
+If the user explicitly requests an actual deck artifact, prefer `slidemax-workflow` first and call `presentation-workflow` or `ppt-generation` only as needed. Otherwise prefer `presentation-workflow` first and then one or more specialized skills.
 
 ## Heartbeat Behavior
 

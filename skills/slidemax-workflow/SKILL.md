@@ -1,11 +1,11 @@
 ---
 name: slidemax-workflow
-description: Use when the user needs an actual PPT, PPTX, SVG, or rendered deck artifact and the local SlideMax companion repository is available.
+description: Primary skill for actual PPT, PPTX, SVG, or rendered deck artifact generation when the local SlideMax companion repository is available.
 ---
 
 # SlideMax Workflow
 
-Use this skill when the user needs an actual slide artifact instead of only an outline, rewrite, review, or speaker notes.
+Use this skill when the user needs an actual slide artifact instead of only an outline, rewrite, review, or speaker notes. Select this skill first for actual deck generation requests.
 
 ## Goals
 
@@ -50,6 +50,14 @@ Suggested milestones:
 Verify that the local SlideMax companion repository is installed.
 If it is missing, stop the generation flow and report that actual PPT generation is blocked.
 
+For a custom companion path, prefer the OpenClaw per-skill env configuration:
+
+```bash
+openclaw config set 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' '"/absolute/path/to/slidemax"'
+```
+
+If persistent service-level fallback is needed, use `~/.openclaw/.env`. For a one-off shell override, use `export SLIDEMAX_DIR="/absolute/path/to/slidemax"`.
+
 ### 2. Confirm structured inputs
 
 Before generation, make sure you already have:
@@ -59,12 +67,19 @@ Before generation, make sure you already have:
 - required visuals, notes, or export constraints
 - output directory or filename expectation
 
-If those inputs are incomplete, return to `presentation-workflow` or `ppt-generation` first.
+If those inputs are incomplete, gather them through `presentation-workflow` or `ppt-generation`, then resume this skill as the task owner for final generation.
 
 ### 3. Use SlideMax as the execution layer
 
 Treat SlideMax as the rendering and export backend.
 This workspace should prepare the narrative and deck structure first, then hand the generation step to the installed SlideMax companion workflow.
+
+Resolve the companion path in this order:
+
+1. `SLIDEMAX_DIR` already present in the process environment
+2. OpenClaw per-skill env injection such as `skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR`
+3. OpenClaw-loaded `.env` values such as `~/.openclaw/.env`
+4. the default sibling path `<workspace-parent>/slidemax`
 
 ### 4. Place outputs predictably
 

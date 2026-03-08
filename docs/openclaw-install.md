@@ -194,6 +194,47 @@ Supported override names:
 - use `SLIDEMAX_DIR` as the supported environment variable
 - do not invent alternate environment variable names for the companion path
 
+When the SlideMax companion path is not the default sibling path, prefer OpenClaw's per-skill env injection for the `slidemax-workflow` skill:
+
+```bash
+openclaw config set 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' '"/absolute/path/to/slidemax"'
+openclaw config get 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR'
+```
+
+This is the preferred persistent configuration because OpenClaw applies `skills.entries.<skill>.env` to the host process for the agent run.
+
+If OpenClaw runs as a background service and the companion path should be available outside the current shell, use the global OpenClaw env file:
+
+```bash
+mkdir -p ~/.openclaw
+python3 - <<'PY'
+from pathlib import Path
+
+env_path = Path.home() / '.openclaw' / '.env'
+lines = []
+if env_path.exists():
+    lines = [line for line in env_path.read_text().splitlines() if not line.startswith('SLIDEMAX_DIR=')]
+lines.append('SLIDEMAX_DIR=/absolute/path/to/slidemax')
+env_path.write_text('\n'.join(lines) + '\n')
+PY
+```
+
+For a one-off shell-only override, use:
+
+```bash
+export SLIDEMAX_DIR="/absolute/path/to/slidemax"
+```
+
+OpenClaw env precedence is:
+
+1. process environment
+2. `.env` in the current working directory
+3. `~/.openclaw/.env`
+4. config `env`
+5. optional shell import
+
+Because shell import only fills missing expected keys, do not rely on `OPENCLAW_LOAD_SHELL_ENV=1` as the primary way to supply `SLIDEMAX_DIR`.
+
 ### Step 2: Check Required Tools
 
 Verify the commands exist:

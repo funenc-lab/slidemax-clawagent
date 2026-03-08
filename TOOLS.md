@@ -54,7 +54,8 @@ For reviews and rewrites, assess:
 - Call out missing inputs before overcommitting to specifics.
 ## SlideMax Usage
 
-- When the requested output is an actual PPT, PPTX, SVG, or generated slide artifact, invoke `skills/slidemax-workflow/SKILL.md` as the local entrypoint to the installed SlideMax companion workflow.
-- Use this workspace for narrative planning, review, notes, and presentation logic first, then hand off deck generation to SlideMax.
+- When the requested output is an actual PPT, PPTX, SVG, or generated slide artifact, invoke `skills/slidemax-workflow/SKILL.md` as the primary local entrypoint to the installed SlideMax companion workflow.
+- Use `presentation-workflow` or `ppt-generation` only as supporting preparation steps when `slidemax-workflow` lacks the structured inputs needed for generation.
+- For persistent companion path configuration, prefer the OpenClaw per-skill env path: `openclaw config set 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' '"/absolute/path/to/slidemax"'`.
+- For service or machine-wide fallback, use `~/.openclaw/.env`; for one-off shell overrides, use `export SLIDEMAX_DIR="/absolute/path/to/slidemax"`.
 - If SlideMax is unavailable locally, report that PPT artifact generation is blocked and continue with non-rendered deliverables only.
-

@@ -38,12 +38,12 @@ If workspace validation fails, do not register the agent because the skill set i
 
 - Standard OpenClaw workspace prompt files: `AGENTS.md`, `SOUL.md`, `TOOLS.md`, `USER.md`, `IDENTITY.md`
 - Core orchestration skill: `skills/presentation-workflow/SKILL.md`
+- Primary artifact generation skill: `skills/slidemax-workflow/SKILL.md`
 - Specialized PPT skills:
   - `skills/ppt-generation/SKILL.md`
   - `skills/ppt-review/SKILL.md`
   - `skills/speaker-notes/SKILL.md`
   - `skills/deck-polish/SKILL.md`
-  - `skills/slidemax-workflow/SKILL.md`
 - A lightweight proactive heartbeat contract: `HEARTBEAT.md`
 - Validation script: `scripts/validate_workspace.sh`
 - Workspace structure smoke test: `tests/test_workspace_structure.sh`
@@ -63,12 +63,12 @@ If workspace validation fails, do not register the agent because the skill set i
 
 ### Skill Layer
 
-- `skills/presentation-workflow/SKILL.md`: entry workflow for create, review, rewrite, and conversion tasks
-- `skills/ppt-generation/SKILL.md`: message-first deck generation from raw input
+- `skills/slidemax-workflow/SKILL.md`: primary execution skill for actual PPT generation through the installed SlideMax companion workflow
+- `skills/presentation-workflow/SKILL.md`: entry workflow for create, review, rewrite, and conversion tasks, and supporting narrative preparation for SlideMax
+- `skills/ppt-generation/SKILL.md`: message-first deck generation from raw input when SlideMax needs structured content
 - `skills/ppt-review/SKILL.md`: structured review and prioritized fixes
 - `skills/speaker-notes/SKILL.md`: talk tracks, transitions, and likely Q&A
 - `skills/deck-polish/SKILL.md`: executive-style tightening and readability improvements
-- `skills/slidemax-workflow/SKILL.md`: handoff entrypoint that routes actual PPT generation to the installed SlideMax companion workflow
 
 ### Operational Layer
 
@@ -106,7 +106,43 @@ If the target agent already exists and already points to this workspace, update 
 If the target agent already exists but points to a different workspace, delete it and add it again with the current workspace.
 If the target agent does not exist, add it with the current workspace.
 Reusing or creating the agent from this workspace makes the bundled local skills from `skills/` available through the registered workspace.
-If the SlideMax repository is not in the default sibling path, set `SLIDEMAX_DIR` in the shell session before following the runbook.
+If the SlideMax repository is not in the default sibling path, configure `SLIDEMAX_DIR` through the OpenClaw env system before following the runbook.
+
+## SlideMax Environment Configuration
+
+If the SlideMax repository is not installed at the default sibling path, prefer configuring the companion path through OpenClaw's per-skill env injection for `slidemax-workflow`:
+
+```bash
+openclaw config set 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' '"/absolute/path/to/slidemax"'
+openclaw config get 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR'
+```
+
+This is the preferred persistent setup for this workspace because OpenClaw applies `skills.entries.<skill>.env` to the host process for the agent run.
+
+If you need a global fallback that also works when OpenClaw runs as a service, put the variable in `~/.openclaw/.env`:
+
+```bash
+mkdir -p ~/.openclaw
+python3 - <<'PY'
+from pathlib import Path
+
+env_path = Path.home() / '.openclaw' / '.env'
+lines = []
+if env_path.exists():
+    lines = [line for line in env_path.read_text().splitlines() if not line.startswith('SLIDEMAX_DIR=')]
+lines.append('SLIDEMAX_DIR=/absolute/path/to/slidemax')
+env_path.write_text('\n'.join(lines) + '\n')
+PY
+```
+
+For a one-off shell-only override, use:
+
+```bash
+export SLIDEMAX_DIR="/absolute/path/to/slidemax"
+```
+
+OpenClaw's official env precedence is: process environment, current-directory `.env`, `~/.openclaw/.env`, config `env`, then optional shell import.
+For `SLIDEMAX_DIR`, prefer the explicit per-skill config or `~/.openclaw/.env` rather than relying on shell import.
 
 ## AI Install Prompt
 

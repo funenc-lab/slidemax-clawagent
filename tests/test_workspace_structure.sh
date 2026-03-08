@@ -56,6 +56,26 @@ for skill_name in 'presentation-workflow' 'ppt-generation' 'ppt-review' 'speaker
   fi
 done
 
+if ! grep -q 'Select `slidemax-workflow` as the primary skill' "$ROOT_DIR/AGENTS.md"; then
+  echo 'AGENTS.md should define slidemax-workflow as the primary skill for actual PPT generation.' >&2
+  exit 1
+fi
+
+if ! grep -q 'primary local entrypoint' "$ROOT_DIR/TOOLS.md"; then
+  echo 'TOOLS.md should define slidemax-workflow as the primary local entrypoint for artifact generation.' >&2
+  exit 1
+fi
+
+if ! grep -q 'Primary Deck Generation Skill: slidemax-workflow' "$ROOT_DIR/IDENTITY.md"; then
+  echo 'IDENTITY.md should declare slidemax-workflow as the primary deck generation skill.' >&2
+  exit 1
+fi
+
+if ! grep -q 'Select this skill first for actual deck generation requests' "$ROOT_DIR/skills/slidemax-workflow/SKILL.md"; then
+  echo 'slidemax-workflow should be marked as the primary artifact generation skill.' >&2
+  exit 1
+fi
+
 if ! grep -q 'HEARTBEAT_OK' "$ROOT_DIR/AGENTS.md"; then
   echo 'AGENTS.md should define heartbeat reply behavior.' >&2
   exit 1
@@ -114,7 +134,7 @@ for required_text in \
   'loads their `SKILL.md` instructions on demand' \
   'No separate per-skill installation command is required' \
   'actual PPT generation'; do
-  if ! grep -q "$required_text" "$ROOT_DIR/docs/openclaw-install.md"; then
+  if ! grep -Fq "$required_text" "$ROOT_DIR/docs/openclaw-install.md"; then
     echo "Install docs missing required text: $required_text" >&2
     exit 1
   fi
@@ -143,12 +163,29 @@ for required_text in \
   'There is no separate per-skill installation command for this agent' \
   'workspace-specific skills that become available to the agent through the registered workspace' \
   'loaded on demand rather than copied into the agent as a separate install artifact' \
-  'skills/slidemax-workflow/SKILL.md'; do
-  if ! grep -q "$required_text" "$ROOT_DIR/README.md"; then
+  'skills/slidemax-workflow/SKILL.md' \
+  'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \
+  '~/.openclaw/.env'; do
+  if ! grep -Fq "$required_text" "$ROOT_DIR/README.md"; then
     echo "README.md missing required text: $required_text" >&2
     exit 1
   fi
 done
+
+for required_text in \
+  'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \
+  '~/.openclaw/.env' \
+  'process environment'; do
+  if ! grep -Fq "$required_text" "$ROOT_DIR/docs/openclaw-install.md"; then
+    echo "Install docs missing required text: $required_text" >&2
+    exit 1
+  fi
+done
+
+if ! grep -Fq 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' "$ROOT_DIR/skills/slidemax-workflow/SKILL.md"; then
+  echo 'slidemax-workflow should document the OpenClaw per-skill SLIDEMAX_DIR configuration command.' >&2
+  exit 1
+fi
 
 for forbidden_text in \
   'scripts/install_openclaw_agent.sh' \
