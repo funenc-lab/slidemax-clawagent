@@ -78,6 +78,26 @@ if ! grep -q 'https://github.com/funenc-lab/slidemax' "$ROOT_DIR/docs/openclaw-i
   missing=1
 fi
 
+if ! grep -q 'https://github.com/funenc-lab/slidemax-clawagent' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo "Install docs must reference the canonical slidemax-clawagent workspace repository URL." >&2
+  missing=1
+fi
+
+if ! grep -q 'repository root' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo "Install docs must define the workspace repository root explicitly." >&2
+  missing=1
+fi
+
+if ! grep -q 'test -f ./scripts/install_openclaw_agent.sh' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo "Install docs must require verifying scripts/install_openclaw_agent.sh before continuing." >&2
+  missing=1
+fi
+
+if ! grep -q 'test -f ./tests/test_workspace_structure.sh' "$ROOT_DIR/docs/openclaw-install.md"; then
+  echo "Install docs must require verifying tests/test_workspace_structure.sh before continuing." >&2
+  missing=1
+fi
+
 if ! grep -q -- '--skip-companion-check' "$ROOT_DIR/docs/openclaw-install.md"; then
   echo "Install docs must explain the --skip-companion-check override." >&2
   missing=1
@@ -135,6 +155,16 @@ fi
 
 if ! grep -q 'raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md' "$ROOT_DIR/README.md"; then
   echo "README.md must direct AI installers to the GitHub file URL for the install runbook." >&2
+  missing=1
+fi
+
+if ! grep -q 'slidemax-clawagent repository root' "$ROOT_DIR/README.md"; then
+  echo "README.md must define the exact workspace path as the slidemax-clawagent repository root." >&2
+  missing=1
+fi
+
+if ! grep -q 'clone it first' "$ROOT_DIR/README.md"; then
+  echo "README.md must tell AI installers to clone the workspace repo first when it is missing." >&2
   missing=1
 fi
 

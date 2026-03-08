@@ -11,6 +11,7 @@ The goal is to ensure the AI completes the installation in the correct order:
 Key facts:
 
 - The canonical repository address for SlideMax is `https://github.com/funenc-lab/slidemax`
+- The canonical workspace repository address is `https://github.com/funenc-lab/slidemax-clawagent`
 - Only the canonical `funenc-lab/slidemax` remote is supported by this installation flow
 - The agent uses the installed SlideMax repository as the workflow skill backend for actual PPT generation
 - The workspace exposes `skills/slidemax-workflow/SKILL.md` as the local skill entrypoint for that generation flow
@@ -50,10 +51,9 @@ The following facts are confirmed from the current repository and the companion 
 This runbook assumes:
 
 - `git`, `python3`, `pip`, `node`, and `npm` are available
-- this workspace repository already exists locally
-- the current working directory is the root of this workspace
 - network access to GitHub and npm is available
 - if the user does not provide a custom companion path, the companion repository will live next to this workspace
+- the AI is allowed to clone the workspace repository when it is missing locally
 
 ### Local Recommendations
 
@@ -133,9 +133,46 @@ outputs/
 
 ## AI Execution Order
 
-### Step 0: Resolve Paths
+### Step 0: Acquire and Verify the Workspace Repository Root
 
-First compute the local paths:
+The exact workspace path must be the absolute path of the local `slidemax-clawagent` repository root.
+Do not treat an arbitrary current directory as the workspace path.
+
+If the workspace repository is missing locally, clone it first and enter its repository root before doing anything else:
+
+```bash
+WORKSPACE_PARENT=$(pwd)
+WORKSPACE_DIR="${WORKSPACE_PARENT}/slidemax-clawagent"
+
+if [ -d "$WORKSPACE_DIR/.git" ]; then
+  git -C "$WORKSPACE_DIR" remote get-url origin
+elif [ -e "$WORKSPACE_DIR" ]; then
+  echo "Target workspace path exists but is not a Git repository: $WORKSPACE_DIR" >&2
+  exit 1
+else
+  git clone https://github.com/funenc-lab/slidemax-clawagent.git "$WORKSPACE_DIR"
+fi
+
+cd "$WORKSPACE_DIR"
+test -f ./scripts/install_openclaw_agent.sh
+test -f ./tests/test_workspace_structure.sh
+```
+
+Rules:
+
+- if the workspace repository does not exist locally, clone `https://github.com/funenc-lab/slidemax-clawagent.git`
+- if the target path exists but is not a Git repository, stop and report the conflict
+- if `./scripts/install_openclaw_agent.sh` is missing, stop immediately
+- if `./tests/test_workspace_structure.sh` is missing, stop immediately
+
+Then report:
+
+- the exact workspace path
+- that the current shell is now inside the workspace repository root
+
+### Step 1: Resolve Paths
+
+After entering the workspace repository root, compute the local paths:
 
 ```bash
 WORKSPACE_DIR=$(pwd)
@@ -145,7 +182,7 @@ SLIDEMAX_DIR="${PARENT_DIR}/slidemax"
 
 Then report:
 
-- the current workspace path
+- the exact workspace path
 - the chosen SlideMax companion repository path
 
 If the user explicitly provided a custom companion path, use that path instead.
@@ -156,7 +193,7 @@ Supported override names:
 - use `--slidemax-dir` as the supported CLI override
 - do not invent alternate environment variable names for the companion path
 
-### Step 1: Check Required Tools
+### Step 2: Check Required Tools
 
 Verify the commands exist:
 
@@ -184,7 +221,7 @@ Rules:
 If `Node.js` is below `22`, do not run the workspace install script.
 If `Python` is below `3.8`, do not proceed with the companion repository installation.
 
-### Step 2: Install or Reuse SlideMax
+### Step 3: Install or Reuse SlideMax
 
 Check whether the target path already contains a Git repository:
 
@@ -208,7 +245,7 @@ Rules:
 
 Do not delete, overwrite, or force-reset an unexpected directory or repository.
 
-### Step 3: Install SlideMax Dependencies
+### Step 4: Install SlideMax Dependencies
 
 According to the companion repository instructions, the minimum dependency installation step is:
 
@@ -226,7 +263,7 @@ Execution requirements:
 
 `python3 -m pip` is used here to reduce interpreter ambiguity while remaining equivalent to the documented `pip install -r requirements.txt` workflow.
 
-### Step 4: Return to the Workspace and Validate It
+### Step 5: Return to the Workspace and Validate It
 
 After the SlideMax repository is ready, return to this workspace:
 
@@ -238,7 +275,7 @@ cd "$WORKSPACE_DIR"
 
 If either command fails, do not continue to agent registration.
 
-### Step 5: Install and Register the OpenClaw Workspace
+### Step 6: Install and Register the OpenClaw Workspace
 
 Run the default install command:
 
@@ -298,7 +335,7 @@ If the target agent is already registered, the script reports that state and ski
 The AI does not need to reimplement these steps, but it must remember that the script does not clone SlideMax and does not install the Python dependencies for SlideMax.
 The script only fails early when the companion repository is missing or incorrectly configured.
 
-### Step 6: Post-Install Verification
+### Step 7: Post-Install Verification
 
 After registration, verify the final state with:
 
@@ -314,7 +351,7 @@ openclaw onboard --install-daemon
 
 If the user wants this agent to run more reliably over time, this is a reasonable next step.
 
-### Step 7: Initialize Output Directories (Recommended)
+### Step 8: Initialize Output Directories (Recommended)
 
 After installation, the AI may initialize the standard output directories:
 

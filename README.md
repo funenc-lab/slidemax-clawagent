@@ -129,6 +129,8 @@ https://raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/opencl
 
 Read it completely and execute the installation exactly as written in that file.
 Do not skip steps and do not change the documented order.
+Treat the exact workspace path as the absolute path of the local slidemax-clawagent repository root.
+If the workspace repository is missing locally, clone it first and enter its root before following the runbook.
 
 After execution, report:
 - the exact workspace path
