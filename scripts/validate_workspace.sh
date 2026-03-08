@@ -17,9 +17,9 @@ required_files=(
   "skills/speaker-notes/SKILL.md"
   "skills/deck-polish/SKILL.md"
   "skills/slidemax-workflow/SKILL.md"
-  "scripts/install_openclaw_agent.sh"
+  "scripts/validate_workspace.sh"
   "docs/openclaw-install.md"
-  "tests/test_install_openclaw_agent.sh"
+  "tests/test_workspace_structure.sh"
 )
 
 missing=0
@@ -73,65 +73,71 @@ if grep -qi 'ppt-master' "$ROOT_DIR/docs/openclaw-install.md"; then
   missing=1
 fi
 
-if ! grep -q 'https://github.com/funenc-lab/slidemax' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must reference the canonical funenc-lab/slidemax repository URL." >&2
-  missing=1
-fi
+for required_text in \
+  'https://github.com/funenc-lab/slidemax' \
+  'https://github.com/funenc-lab/slidemax-clawagent' \
+  'repository root' \
+  'test -f ./scripts/validate_workspace.sh' \
+  'test -f ./tests/test_workspace_structure.sh' \
+  'SLIDEMAX_DIR' \
+  'openclaw agents list --json' \
+  'openclaw agents add ppt-agents --workspace' \
+  'openclaw agents delete ppt-agents' \
+  'already points to `WORKSPACE_DIR`' \
+  'points to a different workspace' \
+  'Only determine the local OpenClaw agent status when Step 6 or Step 7 is actually reached' \
+  'If the installation stops before the OpenClaw registration or verification step' \
+  'the agent should decide the next action based on the actual local OpenClaw state' \
+  'actual PPT generation'; do
+  if ! grep -q "$required_text" "$ROOT_DIR/docs/openclaw-install.md"; then
+    echo "Install docs missing required text: $required_text" >&2
+    missing=1
+  fi
+done
 
-if ! grep -q 'https://github.com/funenc-lab/slidemax-clawagent' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must reference the canonical slidemax-clawagent workspace repository URL." >&2
-  missing=1
-fi
-
-if ! grep -q 'repository root' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must define the workspace repository root explicitly." >&2
-  missing=1
-fi
-
-if ! grep -q 'test -f ./scripts/install_openclaw_agent.sh' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must require verifying scripts/install_openclaw_agent.sh before continuing." >&2
-  missing=1
-fi
-
-if ! grep -q 'test -f ./tests/test_workspace_structure.sh' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must require verifying tests/test_workspace_structure.sh before continuing." >&2
-  missing=1
-fi
-
-if ! grep -q -- '--skip-companion-check' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must explain the --skip-companion-check override." >&2
-  missing=1
-fi
-
-if ! grep -q 'SLIDEMAX_DIR' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must explain the SLIDEMAX_DIR override." >&2
-  missing=1
-fi
-
-if grep -q 'PPT_MASTER_DIR' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must not mention the deprecated PPT_MASTER_DIR override." >&2
-  missing=1
-fi
+for forbidden_text in \
+  'scripts/install_openclaw_agent.sh' \
+  'tests/test_install_openclaw_agent.sh' \
+  'PPT_MASTER_DIR'; do
+  if grep -q "$forbidden_text" "$ROOT_DIR/docs/openclaw-install.md"; then
+    echo "Install docs must not mention: $forbidden_text" >&2
+    missing=1
+  fi
+done
 
 if ! grep -qi 'AI' "$ROOT_DIR/docs/openclaw-install.md"; then
   echo "Install docs must explicitly target AI-guided installation." >&2
   missing=1
 fi
 
-if ! grep -q 'does not exist yet, create it' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must explain that a missing agent should be created." >&2
-  missing=1
-fi
+for required_text in \
+  'AI Install Prompt' \
+  'raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md' \
+  'slidemax-clawagent repository root' \
+  'clone it first' \
+  'Inspect the local OpenClaw installation and agent state yourself' \
+  'update the workspace files and reuse the existing registration' \
+  'delete it and add it again with the current workspace' \
+  'only when the local OpenClaw agent state is made explicit by the runbook steps' \
+  'There is no separate per-skill installation command for this agent' \
+  'workspace-specific skills that become available to the agent through the registered workspace' \
+  'loaded on demand rather than copied into the agent as a separate install artifact' \
+  'skills/slidemax-workflow/SKILL.md'; do
+  if ! grep -q "$required_text" "$ROOT_DIR/README.md"; then
+    echo "README.md missing required text: $required_text" >&2
+    missing=1
+  fi
+done
 
-if ! grep -q 'already exists, reuse it and do not create a duplicate' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must explain that an existing agent should be reused." >&2
-  missing=1
-fi
-
-if ! grep -q 'AI Install Prompt' "$ROOT_DIR/README.md"; then
-  echo "README.md must include a copy-ready AI install prompt." >&2
-  missing=1
-fi
+for forbidden_text in \
+  'scripts/install_openclaw_agent.sh' \
+  'tests/test_install_openclaw_agent.sh' \
+  'ppt-master'; do
+  if grep -qi "$forbidden_text" "$ROOT_DIR/README.md"; then
+    echo "README.md must not mention: $forbidden_text" >&2
+    missing=1
+  fi
+done
 
 if ! grep -q 'slidemax-workflow' "$ROOT_DIR/AGENTS.md"; then
   echo "AGENTS.md must describe the SlideMax workflow integration." >&2
@@ -140,51 +146,6 @@ fi
 
 if ! grep -q 'SlideMax' "$ROOT_DIR/IDENTITY.md"; then
   echo "IDENTITY.md must declare SlideMax as the PPT generation backend." >&2
-  missing=1
-fi
-
-if ! grep -q 'skills/slidemax-workflow/SKILL.md' "$ROOT_DIR/README.md"; then
-  echo "README.md must list the SlideMax workflow skill entrypoint." >&2
-  missing=1
-fi
-
-if ! grep -q 'actual PPT generation' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must explain that SlideMax is used for actual PPT generation." >&2
-  missing=1
-fi
-
-if ! grep -q 'raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md' "$ROOT_DIR/README.md"; then
-  echo "README.md must direct AI installers to the GitHub file URL for the install runbook." >&2
-  missing=1
-fi
-
-if ! grep -q 'slidemax-clawagent repository root' "$ROOT_DIR/README.md"; then
-  echo "README.md must define the exact workspace path as the slidemax-clawagent repository root." >&2
-  missing=1
-fi
-
-if ! grep -q 'clone it first' "$ROOT_DIR/README.md"; then
-  echo "README.md must tell AI installers to clone the workspace repo first when it is missing." >&2
-  missing=1
-fi
-
-if grep -q 'PPT_MASTER_DIR' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
-  echo "Install script must not support the deprecated PPT_MASTER_DIR override." >&2
-  missing=1
-fi
-
-if grep -q -- '--ppt-master-dir' "$ROOT_DIR/scripts/install_openclaw_agent.sh"; then
-  echo "Install script must not support the deprecated --ppt-master-dir option." >&2
-  missing=1
-fi
-
-if grep -qi 'ppt-master' "$ROOT_DIR/README.md"; then
-  echo "README.md must not mention deprecated ppt-master compatibility in install guidance." >&2
-  missing=1
-fi
-
-if ! grep -q 'execution prompt file' "$ROOT_DIR/README.md"; then
-  echo "README.md must tell AI installers to follow the install prompt file exactly." >&2
   missing=1
 fi
 

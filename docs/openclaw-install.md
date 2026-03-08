@@ -14,10 +14,11 @@ Key facts:
 - The canonical workspace repository address is `https://github.com/funenc-lab/slidemax-clawagent`
 - Only the canonical `funenc-lab/slidemax` remote is supported by this installation flow
 - The agent uses the installed SlideMax repository as the workflow skill backend for actual PPT generation
+- There is no separate skill installation command for this agent; registering the workspace makes the local `skills/` directory available to the agent as workspace-specific skills
 - The workspace exposes `skills/slidemax-workflow/SKILL.md` as the local skill entrypoint for that generation flow
 - This repository contains the OpenClaw workspace, not the SlideMax companion application itself
-- `scripts/install_openclaw_agent.sh` does not clone SlideMax
-- `scripts/install_openclaw_agent.sh` does not install the Python dependencies for SlideMax
+- This runbook does not rely on an install helper script
+- The AI should determine the local OpenClaw action directly from the observed local state
 
 ## Document Role
 
@@ -37,14 +38,15 @@ That means:
 
 The following facts are confirmed from the current repository and the companion repository instructions:
 
-- The workspace install script validates the workspace first
-- The workspace install script validates the companion repository path, origin, and `requirements.txt`
-- The workspace install script requires `Node.js 22+`
-- The workspace install script installs `openclaw` only when it is missing
+- The workspace must be validated before registration
+- The companion repository path, origin, and `requirements.txt` must be checked before registration
+- OpenClaw requires `Node.js 22+`
+- `openclaw` may need to be installed before agent registration
 - The companion repository requires at least `Python 3.8+`
 - The companion repository installs dependencies with `pip install -r requirements.txt`
 - The canonical GitHub repository for the companion project is `funenc-lab/slidemax`
 - The companion repository contains the workflow and commands used by the agent to generate PPT artifacts
+- The workspace skill files under `skills/` are workspace-specific skills and must be present before registration
 
 ### Assumptions
 
@@ -83,7 +85,7 @@ The installation is considered complete only when all of the following are true:
 - the companion repository dependency installation command succeeds
 - `./scripts/validate_workspace.sh` succeeds
 - `./tests/test_workspace_structure.sh` succeeds
-- `openclaw agents list` shows the agent, or the install script confirms that it is already registered
+- `openclaw agents list` shows the agent after the chosen install or update path
 
 ## Output Directory Convention
 
@@ -154,7 +156,7 @@ else
 fi
 
 cd "$WORKSPACE_DIR"
-test -f ./scripts/install_openclaw_agent.sh
+test -f ./scripts/validate_workspace.sh
 test -f ./tests/test_workspace_structure.sh
 ```
 
@@ -162,7 +164,7 @@ Rules:
 
 - if the workspace repository does not exist locally, clone `https://github.com/funenc-lab/slidemax-clawagent.git`
 - if the target path exists but is not a Git repository, stop and report the conflict
-- if `./scripts/install_openclaw_agent.sh` is missing, stop immediately
+- if `./scripts/validate_workspace.sh` is missing, stop immediately
 - if `./tests/test_workspace_structure.sh` is missing, stop immediately
 
 Then report:
@@ -190,7 +192,6 @@ If the user explicitly provided a custom companion path, use that path instead.
 Supported override names:
 
 - use `SLIDEMAX_DIR` as the supported environment variable
-- use `--slidemax-dir` as the supported CLI override
 - do not invent alternate environment variable names for the companion path
 
 ### Step 2: Check Required Tools
@@ -216,9 +217,9 @@ npm --version
 Rules:
 
 - SlideMax requires `Python 3.8+`
-- the workspace installer requires `Node.js 22+`
+- OpenClaw requires `Node.js 22+`
 
-If `Node.js` is below `22`, do not run the workspace install script.
+If `Node.js` is below `22`, do not continue to the OpenClaw registration step.
 If `Python` is below `3.8`, do not proceed with the companion repository installation.
 
 ### Step 3: Install or Reuse SlideMax
@@ -274,70 +275,75 @@ cd "$WORKSPACE_DIR"
 ```
 
 If either command fails, do not continue to agent registration.
+These validation steps are also the guardrail for workspace-specific skills: if they fail, the agent must not be registered because the local `skills/` set is not trusted as complete.
 
-### Step 6: Install and Register the OpenClaw Workspace
+### Step 6: Determine and Apply the Local OpenClaw Action
 
-Run the default install command:
+At this stage, the agent should decide the next action based on the actual local OpenClaw state.
+Do not rely on an install helper script.
+
+First inspect the local OpenClaw state:
 
 ```bash
-./scripts/install_openclaw_agent.sh
+command -v openclaw || true
+openclaw agents list --json 2>/dev/null || true
 ```
 
-Agent handling rule:
+If `openclaw` is missing, install it first:
 
-- if the target OpenClaw agent does not exist yet, create it
+```bash
+npm install -g openclaw@latest
+hash -r
+```
+
+Then inspect the local OpenClaw state again:
+
+```bash
+openclaw agents list --json
+```
+
+Decision rules:
+
+- if the target OpenClaw agent does not exist yet, create it and register this workspace with OpenClaw
 - if the target OpenClaw agent already exists, reuse it and do not create a duplicate
+- if the target OpenClaw agent already exists and already points to `WORKSPACE_DIR`, update the workspace files and reuse the existing registration
+- if the target OpenClaw agent already exists but points to a different workspace, delete it and add it again with `WORKSPACE_DIR`
+- the agent should decide the next action based on the actual local OpenClaw state
+- use direct OpenClaw commands instead of a helper script
 
-If the user provided a custom agent name:
-
-```bash
-./scripts/install_openclaw_agent.sh my-ppt-agent
-```
-
-If the SlideMax repository is not located at the default sibling path:
+Inspect the registered workspace path from the local OpenClaw state before deciding:
 
 ```bash
-SLIDEMAX_DIR=/absolute/path/to/slidemax ./scripts/install_openclaw_agent.sh
+openclaw agents list --json
 ```
 
-Supported CLI override:
+Direct add path when the agent does not exist:
 
 ```bash
-./scripts/install_openclaw_agent.sh --slidemax-dir /absolute/path/to/slidemax
+openclaw agents add ppt-agents --workspace "$WORKSPACE_DIR" --non-interactive
 ```
 
-If you intentionally need to bypass companion preflight validation in a controlled exception case:
+Direct replace path when the agent exists but points to a different workspace:
 
 ```bash
-./scripts/install_openclaw_agent.sh --skip-companion-check my-ppt-agent
+openclaw agents delete ppt-agents
+openclaw agents add ppt-agents --workspace "$WORKSPACE_DIR" --non-interactive
 ```
 
-`--skip-companion-check` should not be used as the default path.
+When this add or replace action succeeds, the workspace-local files under `skills/` become available to the agent through the registered workspace.
+OpenClaw exposes them as workspace-specific skills and loads their `SKILL.md` instructions on demand.
+No separate per-skill installation command is required.
 
-The script currently performs these actions internally:
+If the user provided a custom agent name, replace `ppt-agents` with that name in the inspection, delete, and add commands.
 
-It resolves the companion repository path in this order:
-
-1. `SLIDEMAX_DIR`
-2. `../slidemax`
-
-The script then:
-
-1. run `./scripts/validate_workspace.sh`
-2. validate the SlideMax companion repository path, origin, and `requirements.txt`
-3. verify `Node.js 22+`
-4. install `openclaw` if it is missing
-5. check whether the agent is already registered
-6. register this workspace with OpenClaw only when the target agent does not already exist
-
-If the target agent is already registered, the script reports that state and skips duplicate registration.
-
-The AI does not need to reimplement these steps, but it must remember that the script does not clone SlideMax and does not install the Python dependencies for SlideMax.
-The script only fails early when the companion repository is missing or incorrectly configured.
+Only determine the local OpenClaw agent status when Step 6 or Step 7 is actually reached.
+Do not infer or guess the agent status from earlier workspace, dependency, or validation steps.
+If the installation stops before the OpenClaw registration or verification step, report the agent status as undetermined.
+If the local OpenClaw state shows that the existing agent already points to this workspace, report the result as an update by workspace reuse rather than a new install.
 
 ### Step 7: Post-Install Verification
 
-After registration, verify the final state with:
+After the chosen Step 6 action completes, verify the final state with:
 
 ```bash
 openclaw agents list
@@ -396,6 +402,9 @@ Notes:
 
 ### Skill Files
 
+These files are workspace-specific skills made available to the agent by registering this workspace.
+If any required skill file is missing, do not register or reuse the workspace until validation passes.
+
 - `skills/presentation-workflow/SKILL.md`
   - the workflow entry point for creation, review, rewrite, and conversion tasks
   - prepares narrative inputs before handing actual deck generation to SlideMax when needed
@@ -419,21 +428,11 @@ Notes:
 
 ### Operational Scripts
 
-- `scripts/install_openclaw_agent.sh`
-  - validates the workspace
-  - validates the companion repository
-  - checks `Node.js 22+`
-  - installs `openclaw` if needed
-  - registers the workspace as an agent
-
 - `scripts/validate_workspace.sh`
   - checks required files and critical prompt constraints
 
 - `tests/test_workspace_structure.sh`
   - runs a lightweight structure regression check
-
-- `tests/test_install_openclaw_agent.sh`
-  - runs a behavior-level smoke test for companion preflight and agent registration logic
 
 ## HEARTBEAT and Progress Reporting
 
@@ -470,6 +469,7 @@ The AI may only claim the installation is complete when all of the following are
 - `openclaw agents list` shows the target agent, or the installer reported that it was already registered
 
 If any of these are missing, the AI may only report partial progress, not full completion.
+If the OpenClaw registration or verification step was not reached, the AI must not claim that the agent was newly registered or already existed.
 
 ## Common Failure Handling
 
@@ -490,7 +490,7 @@ Common causes include:
 
 ### 3. `Node.js` Is Below `22`
 
-Do not run `./scripts/install_openclaw_agent.sh` until Node.js is upgraded.
+Do not continue to the OpenClaw registration step until Node.js is upgraded.
 
 ### 4. `npm install -g openclaw@latest` Fails
 
@@ -506,7 +506,6 @@ Check these files first:
 - `skills/ppt-generation/SKILL.md`
 - `skills/ppt-review/SKILL.md`
 - `docs/openclaw-install.md`
-- `scripts/install_openclaw_agent.sh`
 
 ## Recommended Reporting Shape
 
@@ -520,7 +519,7 @@ When an AI follows this runbook, a useful status report looks like this:
 
 ## Conclusion
 
-For an AI executor, the correct order is not “run `./scripts/install_openclaw_agent.sh` immediately”.
+For an AI executor, the correct order is not “jump to OpenClaw registration immediately”.
 The correct order is:
 
 1. confirm the environment
