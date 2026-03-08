@@ -16,7 +16,7 @@ required_files=(
   "skills/ppt-review/SKILL.md"
   "skills/speaker-notes/SKILL.md"
   "skills/deck-polish/SKILL.md"
-  "skills/slidemax-workflow/SKILL.md"
+  "skills/slidemax-bridge/SKILL.md"
   "scripts/validate_workspace.sh"
   "docs/openclaw-install.md"
   "tests/test_workspace_structure.sh"
@@ -35,12 +35,15 @@ if grep -Eq '^HEARTBEAT\.md$' "$ROOT_DIR/.gitignore"; then
   missing=1
 fi
 
-if [[ -f "$ROOT_DIR/HEARTBEAT.md" ]]; then
-  heartbeat_size=$(wc -c < "$ROOT_DIR/HEARTBEAT.md" | tr -d ' ')
-  if [[ "$heartbeat_size" -gt 800 ]]; then
-    echo "HEARTBEAT.md is too large and should remain tiny." >&2
-    missing=1
-  fi
+if ! grep -Fq 'skills/slidemax_workflow' "$ROOT_DIR/.gitignore"; then
+  echo "Runtime companion skill link should be ignored via .gitignore." >&2
+  missing=1
+fi
+
+heartbeat_size=$(wc -c < "$ROOT_DIR/HEARTBEAT.md" | tr -d ' ')
+if [[ "$heartbeat_size" -gt 800 ]]; then
+  echo "HEARTBEAT.md is too large and should remain tiny." >&2
+  missing=1
 fi
 
 if ! grep -qi 'progress' "$ROOT_DIR/AGENTS.md"; then
@@ -58,28 +61,49 @@ for skill_file in \
   fi
 done
 
-if ! grep -q 'AGENTS.md' "$ROOT_DIR/TOOLS.md"; then
-  echo "TOOLS.md should reference AGENTS.md as the canonical workspace contract." >&2
-  missing=1
-fi
+for required_text in \
+  'slidemax-workflow' \
+  'slidemax-bridge' \
+  'SLIDEMAX_DIR/skills/slidemax_workflow' \
+  'Select `slidemax-workflow` as the primary skill' \
+  'Judao final document' \
+  'Delivery status'; do
+  if ! grep -Fq "$required_text" "$ROOT_DIR/AGENTS.md"; then
+    echo "AGENTS.md missing required text: $required_text" >&2
+    missing=1
+  fi
+done
 
-if ! grep -q 'HEARTBEAT.md' "$ROOT_DIR/TOOLS.md"; then
-  echo "TOOLS.md should reference HEARTBEAT.md for heartbeat behavior." >&2
-  missing=1
-fi
+for required_text in \
+  'AGENTS.md' \
+  'HEARTBEAT.md' \
+  'slidemax-workflow' \
+  'skills/slidemax-bridge/SKILL.md' \
+  'SLIDEMAX_DIR/skills/slidemax_workflow' \
+  'final delivery document'; do
+  if ! grep -Fq "$required_text" "$ROOT_DIR/TOOLS.md"; then
+    echo "TOOLS.md missing required text: $required_text" >&2
+    missing=1
+  fi
+done
 
-if grep -qi 'ppt-master' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must not mention deprecated ppt-master compatibility." >&2
-  missing=1
-fi
+for required_text in \
+  'Primary Deck Generation Skill: slidemax-workflow' \
+  'SlideMax'; do
+  if ! grep -Fq "$required_text" "$ROOT_DIR/IDENTITY.md"; then
+    echo "IDENTITY.md missing required text: $required_text" >&2
+    missing=1
+  fi
+done
 
 for required_text in \
   'https://github.com/funenc-lab/slidemax' \
   'https://github.com/funenc-lab/slidemax-clawagent' \
-  'repository root' \
-  'test -f ./scripts/validate_workspace.sh' \
-  'test -f ./tests/test_workspace_structure.sh' \
-  'SLIDEMAX_DIR' \
+  'SLIDEMAX_DIR/skills/slidemax_workflow' \
+  'skills/slidemax-bridge/SKILL.md' \
+  'skills/slidemax_workflow/SKILL.md' \
+  'ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
+  'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \
   'openclaw agents list --json' \
   'openclaw agents add ppt-agent --workspace' \
   'openclaw agents delete ppt-agent' \
@@ -98,33 +122,29 @@ done
 for forbidden_text in \
   'scripts/install_openclaw_agent.sh' \
   'tests/test_install_openclaw_agent.sh' \
-  'PPT_MASTER_DIR'; do
-  if grep -q "$forbidden_text" "$ROOT_DIR/docs/openclaw-install.md"; then
+  'ppt-master' \
+  'PPT_MASTER_DIR' \
+  'skills/slidemax-workflow/SKILL.md'; do
+  if grep -Fqi "$forbidden_text" "$ROOT_DIR/docs/openclaw-install.md"; then
     echo "Install docs must not mention: $forbidden_text" >&2
     missing=1
   fi
 done
-
-if ! grep -qi 'AI' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must explicitly target AI-guided installation." >&2
-  missing=1
-fi
 
 for required_text in \
   'AI Install Prompt' \
   'raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md' \
   'slidemax-clawagent repository root' \
   'clone it first' \
-  'Inspect the local OpenClaw installation and agent state yourself' \
-  'update the workspace files and reuse the existing registration' \
-  'delete it and add it again with the current workspace' \
-  'only when the local OpenClaw agent state is made explicit by the runbook steps' \
-  'There is no separate per-skill installation command for this agent' \
-  'workspace-specific skills that become available to the agent through the registered workspace' \
-  'loaded on demand rather than copied into the agent as a separate install artifact' \
-  'skills/slidemax-workflow/SKILL.md' \
+  'skills/slidemax-bridge/SKILL.md' \
+  'skills/slidemax_workflow/SKILL.md' \
+  'SLIDEMAX_DIR/skills/slidemax_workflow' \
+  'ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
   'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \
-  '~/.openclaw/.env'; do
+  '~/.openclaw/.env' \
+  'Judao final document' \
+  'Feishu document' \
+  'Delivery status'; do
   if ! grep -Fq "$required_text" "$ROOT_DIR/README.md"; then
     echo "README.md missing required text: $required_text" >&2
     missing=1
@@ -134,60 +154,39 @@ done
 for forbidden_text in \
   'scripts/install_openclaw_agent.sh' \
   'tests/test_install_openclaw_agent.sh' \
-  'ppt-master'; do
-  if grep -qi "$forbidden_text" "$ROOT_DIR/README.md"; then
+  'ppt-master' \
+  'skills/slidemax-workflow/SKILL.md'; do
+  if grep -Fqi "$forbidden_text" "$ROOT_DIR/README.md"; then
     echo "README.md must not mention: $forbidden_text" >&2
     missing=1
   fi
 done
 
-if ! grep -q 'slidemax-workflow' "$ROOT_DIR/AGENTS.md"; then
-  echo "AGENTS.md must describe the SlideMax workflow integration." >&2
+for required_text in \
+  'name: slidemax-bridge' \
+  'SLIDEMAX_DIR/skills/slidemax_workflow' \
+  'ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
+  'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \
+  'slidemax-workflow'; do
+  if ! grep -Fq "$required_text" "$ROOT_DIR/skills/slidemax-bridge/SKILL.md"; then
+    echo "slidemax-bridge skill missing required text: $required_text" >&2
+    missing=1
+  fi
+done
+
+
+if ! grep -Fq 'final delivery destination' "$ROOT_DIR/skills/presentation-workflow/SKILL.md"; then
+  echo "presentation-workflow must capture the final delivery destination." >&2
   missing=1
 fi
 
-if ! grep -q 'Select `slidemax-workflow` as the primary skill' "$ROOT_DIR/AGENTS.md"; then
-  echo "AGENTS.md must declare slidemax-workflow as the primary PPT generation skill." >&2
+if ! grep -Fq 'delivery target and handoff status' "$ROOT_DIR/skills/ppt-generation/SKILL.md"; then
+  echo "ppt-generation must report delivery target and handoff status." >&2
   missing=1
 fi
 
-if ! grep -q 'primary local entrypoint' "$ROOT_DIR/TOOLS.md"; then
-  echo "TOOLS.md must define slidemax-workflow as the primary local entrypoint for artifact generation." >&2
-  missing=1
-fi
-
-if ! grep -q 'Primary Deck Generation Skill: slidemax-workflow' "$ROOT_DIR/IDENTITY.md"; then
-  echo "IDENTITY.md must declare slidemax-workflow as the primary deck generation skill." >&2
-  missing=1
-fi
-
-if ! grep -q 'Select this skill first for actual deck generation requests' "$ROOT_DIR/skills/slidemax-workflow/SKILL.md"; then
-  echo "slidemax-workflow must be marked as the primary artifact generation skill." >&2
-  missing=1
-fi
-
-if ! grep -Fq 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must document the OpenClaw per-skill SLIDEMAX_DIR configuration command." >&2
-  missing=1
-fi
-
-if ! grep -q '~/.openclaw/.env' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must document the OpenClaw global .env fallback for SLIDEMAX_DIR." >&2
-  missing=1
-fi
-
-if ! grep -q 'process environment' "$ROOT_DIR/docs/openclaw-install.md"; then
-  echo "Install docs must document the OpenClaw env precedence for SLIDEMAX_DIR." >&2
-  missing=1
-fi
-
-if ! grep -Fq 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' "$ROOT_DIR/skills/slidemax-workflow/SKILL.md"; then
-  echo "slidemax-workflow must document the OpenClaw per-skill SLIDEMAX_DIR configuration command." >&2
-  missing=1
-fi
-
-if ! grep -q 'SlideMax' "$ROOT_DIR/IDENTITY.md"; then
-  echo "IDENTITY.md must declare SlideMax as the PPT generation backend." >&2
+if ! grep -Fq 'delivery status' "$ROOT_DIR/USER.md"; then
+  echo "USER.md must require delivery status in final responses." >&2
   missing=1
 fi
 

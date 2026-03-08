@@ -13,9 +13,10 @@ Key facts:
 - The canonical repository address for SlideMax is `https://github.com/funenc-lab/slidemax`
 - The canonical workspace repository address is `https://github.com/funenc-lab/slidemax-clawagent`
 - Only the canonical `funenc-lab/slidemax` remote is supported by this installation flow
-- The agent uses the installed SlideMax repository as the workflow skill backend for actual PPT generation
-- There is no separate skill installation command for this agent; registering the workspace makes the local `skills/` directory available to the agent as workspace-specific skills
-- The workspace exposes `skills/slidemax-workflow/SKILL.md` as the local skill entrypoint for that generation flow
+- The agent uses the installed SlideMax repository as the canonical workflow skill backend for actual PPT generation
+- The canonical workflow skill file is `SLIDEMAX_DIR/skills/slidemax_workflow/SKILL.md`
+- During installation, that companion skill must be installed into this workspace at `WORKSPACE_DIR/skills/slidemax_workflow`
+- `skills/slidemax-bridge/SKILL.md` in this repository is only a local bridge skill and is not the canonical `slidemax-workflow` implementation
 - This repository contains the OpenClaw workspace, not the SlideMax companion application itself
 - This runbook does not rely on an install helper script
 - The AI should determine the local OpenClaw action directly from the observed local state
@@ -46,7 +47,8 @@ The following facts are confirmed from the current repository and the companion 
 - The companion repository installs dependencies with `pip install -r requirements.txt`
 - The canonical GitHub repository for the companion project is `funenc-lab/slidemax`
 - The companion repository contains the workflow and commands used by the agent to generate PPT artifacts
-- The workspace skill files under `skills/` are workspace-specific skills and must be present before registration
+- The companion repository must contain `skills/slidemax_workflow/SKILL.md` before installation can continue
+- The workspace bridge skill files under `skills/` must be present before registration
 
 ### Assumptions
 
@@ -83,6 +85,8 @@ The installation is considered complete only when all of the following are true:
 - the SlideMax companion repository exists at the chosen path
 - the companion repository remote is canonical `funenc-lab/slidemax`
 - the companion repository dependency installation command succeeds
+- `SLIDEMAX_DIR/skills/slidemax_workflow/SKILL.md` exists
+- `WORKSPACE_DIR/skills/slidemax_workflow/SKILL.md` exists and resolves to the companion skill
 - `./scripts/validate_workspace.sh` succeeds
 - `./tests/test_workspace_structure.sh` succeeds
 - `openclaw agents list` shows the agent after the chosen install or update path
@@ -180,6 +184,8 @@ After entering the workspace repository root, compute the local paths:
 WORKSPACE_DIR=$(pwd)
 PARENT_DIR=$(dirname "$WORKSPACE_DIR")
 SLIDEMAX_DIR="${PARENT_DIR}/slidemax"
+WORKSPACE_SLIDEMAX_SKILL_DIR="$WORKSPACE_DIR/skills/slidemax_workflow"
+SLIDEMAX_WORKFLOW_SOURCE_DIR="$SLIDEMAX_DIR/skills/slidemax_workflow"
 ```
 
 Then report:
@@ -193,6 +199,7 @@ Supported override names:
 
 - use `SLIDEMAX_DIR` as the supported environment variable
 - do not invent alternate environment variable names for the companion path
+- treat `SLIDEMAX_DIR/skills/slidemax_workflow` as the canonical source path for the runtime `slidemax-workflow` skill
 
 When the SlideMax companion path is not the default sibling path, prefer OpenClaw's per-skill env injection for the `slidemax-workflow` skill:
 
@@ -281,9 +288,10 @@ fi
 Rules:
 
 - if the path does not exist, clone the canonical repository
-- if the path exists and is a Git repository, reuse it only when the remote is `https://github.com/funenc-lab/slidemax.git`
+- if the path exists and is a Git repository, reuse it only when the remote is the canonical `funenc-lab/slidemax` repository
 - if the path exists but is not a Git repository, stop and report the conflict
 - if the existing remote is anything else, stop and report the conflict
+- after clone or reuse, verify `test -f "$SLIDEMAX_DIR/skills/slidemax_workflow/SKILL.md"` before continuing
 
 Do not delete, overwrite, or force-reset an unexpected directory or repository.
 
@@ -305,18 +313,39 @@ Execution requirements:
 
 `python3 -m pip` is used here to reduce interpreter ambiguity while remaining equivalent to the documented `pip install -r requirements.txt` workflow.
 
-### Step 5: Return to the Workspace and Validate It
+### Step 5: Install the Canonical Companion Skill and Validate the Workspace
 
-After the SlideMax repository is ready, return to this workspace:
+After the SlideMax repository is ready, return to this workspace and install the canonical workflow skill from the companion repo:
 
 ```bash
 cd "$WORKSPACE_DIR"
+test -f "$SLIDEMAX_DIR/skills/slidemax_workflow/SKILL.md"
+
+if [ -L "$WORKSPACE_DIR/skills/slidemax_workflow" ]; then
+  rm "$WORKSPACE_DIR/skills/slidemax_workflow"
+elif [ -e "$WORKSPACE_DIR/skills/slidemax_workflow" ]; then
+  echo "Target workspace skill path already exists and is not a symlink: $WORKSPACE_DIR/skills/slidemax_workflow" >&2
+  exit 1
+fi
+
+ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"
+test -f "$WORKSPACE_DIR/skills/slidemax_workflow/SKILL.md"
+openclaw config set 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' "\"$SLIDEMAX_DIR\""
+openclaw config get 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR'
+# start a new agent session after installation if an older session was already running
 ./scripts/validate_workspace.sh
 ./tests/test_workspace_structure.sh
 ```
 
-If either command fails, do not continue to agent registration.
-These validation steps are also the guardrail for workspace-specific skills: if they fail, the agent must not be registered because the local `skills/` set is not trusted as complete.
+Rules:
+
+- the runtime `slidemax-workflow` skill must come from `SLIDEMAX_DIR/skills/slidemax_workflow`, not from a hand-written local replacement
+- install that canonical companion skill into `WORKSPACE_DIR/skills/slidemax_workflow` before agent registration
+- the local `skills/slidemax-bridge/SKILL.md` file is only a bridge skill and must not be treated as the canonical generation workflow
+- if the workspace skill target exists and is not a symlink, stop and report the conflict
+- if either validation command fails, do not continue to agent registration
+
+These validation steps are also the guardrail for workspace-specific bridge skills and the installed companion workflow: if they fail, the agent must not be registered because the local skill surface is not trusted as complete.
 
 ### Step 6: Determine and Apply the Local OpenClaw Action
 
@@ -371,9 +400,9 @@ openclaw agents delete ppt-agent
 openclaw agents add ppt-agent --workspace "$WORKSPACE_DIR" --non-interactive
 ```
 
-When this add or replace action succeeds, the workspace-local files under `skills/` become available to the agent through the registered workspace.
-OpenClaw exposes them as workspace-specific skills and loads their `SKILL.md` instructions on demand.
-No separate per-skill installation command is required.
+When this add or replace action succeeds, the workspace-local bridge files under `skills/` become available to the agent through the registered workspace.
+The canonical `slidemax-workflow` skill should already have been installed during Step 5 at `skills/slidemax_workflow`, sourced from the SlideMax companion repository.
+OpenClaw then loads that runtime skill from the workspace path on demand.
 
 If the user provided a custom agent name, replace `ppt-agent` with that name in the inspection, delete, and add commands.
 
@@ -443,8 +472,9 @@ Notes:
 
 ### Skill Files
 
-These files are workspace-specific skills made available to the agent by registering this workspace.
-If any required skill file is missing, do not register or reuse the workspace until validation passes.
+These files are workspace-specific bridge skills made available to the agent by registering this workspace.
+The canonical runtime `slidemax-workflow` skill is installed from the companion repository into `skills/slidemax_workflow` during Step 5.
+If any required bridge file is missing, do not register or reuse the workspace until validation passes.
 
 - `skills/presentation-workflow/SKILL.md`
   - the workflow entry point for creation, review, rewrite, and conversion tasks
@@ -463,9 +493,13 @@ If any required skill file is missing, do not register or reuse the workspace un
 - `skills/deck-polish/SKILL.md`
   - tightens wording, sharpens titles, and improves executive readability
 
-- `skills/slidemax-workflow/SKILL.md`
-  - routes actual PPT, PPTX, SVG, and rendered deck generation to the installed SlideMax companion workflow
-  - blocks generation cleanly when SlideMax is not installed locally
+- `skills/slidemax-bridge/SKILL.md`
+  - installs or repairs the canonical companion skill from `SLIDEMAX_DIR/skills/slidemax_workflow` into this workspace
+  - verifies that the runtime `slidemax-workflow` skill can be used safely
+
+- `skills/slidemax_workflow/SKILL.md`
+  - runtime-installed canonical SlideMax workflow skill sourced from the companion repository
+  - drives actual PPT, PPTX, SVG, and rendered deck generation after installation
 
 ### Operational Scripts
 

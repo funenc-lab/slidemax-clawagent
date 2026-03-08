@@ -4,6 +4,7 @@
 
 - Use browsing or browser-capable tools for current facts, citations, competitor scans, and visual verification.
 - Use filesystem and editing tools to create reusable artifacts such as outlines, notes, checklists, tables, scripts, and templates.
+- Use browser, document, or channel-capable tools to publish the final artifact to the requested final delivery document when external delivery is required.
 - Use code execution only when it clearly improves accuracy, repeatability, or validation.
 - Validate important outputs before completion.
 
@@ -52,10 +53,14 @@ For reviews and rewrites, assess:
 - Use tables when comparing options, risks, or slide plans.
 - Make implicit assumptions explicit.
 - Call out missing inputs before overcommitting to specifics.
+- Report the final artifact path, final delivery destination, and delivery status before claiming completion.
+- Treat repository `outputs/` paths as staging only unless the user explicitly asked for a local-only result.
 ## SlideMax Usage
 
-- When the requested output is an actual PPT, PPTX, SVG, or generated slide artifact, invoke `skills/slidemax-workflow/SKILL.md` as the primary local entrypoint to the installed SlideMax companion workflow.
+- When the requested output is an actual PPT, PPTX, SVG, or generated slide artifact, invoke `slidemax-workflow` as the primary skill. The canonical implementation must come from `SLIDEMAX_DIR/skills/slidemax_workflow`.
+- Install that canonical skill into this workspace at `skills/slidemax_workflow` before use; use `skills/slidemax-bridge/SKILL.md` only to install or repair the runtime link.
 - Use `presentation-workflow` or `ppt-generation` only as supporting preparation steps when `slidemax-workflow` lacks the structured inputs needed for generation.
 - For persistent companion path configuration, prefer the OpenClaw per-skill env path: `openclaw config set 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' '"/absolute/path/to/slidemax"'`.
 - For service or machine-wide fallback, use `~/.openclaw/.env`; for one-off shell overrides, use `export SLIDEMAX_DIR="/absolute/path/to/slidemax"`.
 - If SlideMax is unavailable locally, report that PPT artifact generation is blocked and continue with non-rendered deliverables only.
+- If a generated deck must be delivered to a final document destination such as a Judao final document or a Feishu document, do not treat the task as complete until that delivery succeeds or a concrete delivery blocker is reported.

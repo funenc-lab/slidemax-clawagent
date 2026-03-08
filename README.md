@@ -29,16 +29,18 @@ According to the official SlideMax repository, the minimum setup includes:
 
 This repository does not auto-clone or auto-install SlideMax; that dependency and its workflow role are documented in `docs/openclaw-install.md`.
 
-There is no separate per-skill installation command for this agent.
-The local files under `skills/` are workspace-specific skills that become available to the agent through the registered workspace.
-Those skill files are loaded on demand rather than copied into the agent as a separate install artifact.
-If workspace validation fails, do not register the agent because the skill set is incomplete.
+This repository does not bundle the canonical `slidemax-workflow` implementation.
+The local `skills/slidemax-bridge/SKILL.md` file is only a bridge skill for installation and repair.
+During installation, the AI must install the canonical companion skill from `SLIDEMAX_DIR/skills/slidemax_workflow` into `skills/slidemax_workflow` inside this workspace before the agent can use it for actual PPT generation.
+The remaining local files under `skills/` are workspace-specific skills that become available to the agent through the registered workspace.
+If workspace validation fails, do not register the agent because the local skill set is incomplete or the companion workflow was not installed correctly.
 
 ## What it includes
 
 - Standard OpenClaw workspace prompt files: `AGENTS.md`, `SOUL.md`, `TOOLS.md`, `USER.md`, `IDENTITY.md`
 - Core orchestration skill: `skills/presentation-workflow/SKILL.md`
-- Primary artifact generation skill: `skills/slidemax-workflow/SKILL.md`
+- Local bridge skill: `skills/slidemax-bridge/SKILL.md`
+- Canonical runtime generation skill installed from the SlideMax companion repo: `skills/slidemax_workflow/SKILL.md`
 - Specialized PPT skills:
   - `skills/ppt-generation/SKILL.md`
   - `skills/ppt-review/SKILL.md`
@@ -47,7 +49,7 @@ If workspace validation fails, do not register the agent because the skill set i
 - A lightweight proactive heartbeat contract: `HEARTBEAT.md`
 - Validation script: `scripts/validate_workspace.sh`
 - Workspace structure smoke test: `tests/test_workspace_structure.sh`
-- SlideMax companion workflow and local skill entrypoint for actual PPT generation
+- SlideMax companion workflow bridge plus runtime-installed canonical skill for actual PPT generation
 - English AI installation guide: `docs/openclaw-install.md`
 
 ## Workspace Layout
@@ -63,7 +65,8 @@ If workspace validation fails, do not register the agent because the skill set i
 
 ### Skill Layer
 
-- `skills/slidemax-workflow/SKILL.md`: primary execution skill for actual PPT generation through the installed SlideMax companion workflow
+- `skills/slidemax-bridge/SKILL.md`: local bridge skill that installs or repairs the canonical SlideMax workflow skill in this workspace
+- `skills/slidemax_workflow/SKILL.md`: canonical runtime skill sourced from the installed SlideMax companion repository for actual PPT generation
 - `skills/presentation-workflow/SKILL.md`: entry workflow for create, review, rewrite, and conversion tasks, and supporting narrative preparation for SlideMax
 - `skills/ppt-generation/SKILL.md`: message-first deck generation from raw input when SlideMax needs structured content
 - `skills/ppt-review/SKILL.md`: structured review and prioritized fixes
@@ -82,10 +85,11 @@ The expected installation sequence is:
 
 1. clone or update the SlideMax companion repository
 2. install the SlideMax Python dependencies
-3. validate this workspace
-4. verify `Node.js 22+`
-5. install `openclaw` globally if needed
-6. register this repository as an OpenClaw workspace
+3. install the canonical `slidemax_workflow` skill from the companion repo into this workspace
+4. validate this workspace
+5. verify `Node.js 22+`
+6. install `openclaw` globally if needed
+7. register this repository as an OpenClaw workspace
 
 ## Quick Install
 
@@ -94,23 +98,39 @@ Read `docs/openclaw-install.md` first if an AI agent is performing the installat
 For a direct manual setup after the prerequisites are ready, use the local-state flow:
 
 ```bash
+WORKSPACE_DIR="$(pwd)"
+PARENT_DIR="$(dirname "$WORKSPACE_DIR")"
+SLIDEMAX_DIR="${SLIDEMAX_DIR:-$PARENT_DIR/slidemax}"
+
+command -v openclaw >/dev/null 2>&1 || npm install -g openclaw@latest
+test -f "$SLIDEMAX_DIR/skills/slidemax_workflow/SKILL.md"
+
+if [ -L "$WORKSPACE_DIR/skills/slidemax_workflow" ]; then
+  rm "$WORKSPACE_DIR/skills/slidemax_workflow"
+elif [ -e "$WORKSPACE_DIR/skills/slidemax_workflow" ]; then
+  echo "Target workspace skill path already exists and is not a symlink: $WORKSPACE_DIR/skills/slidemax_workflow" >&2
+  exit 1
+fi
+
+ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"
+openclaw config set 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' "\"$SLIDEMAX_DIR\""
 ./scripts/validate_workspace.sh
 ./tests/test_workspace_structure.sh
-command -v openclaw >/dev/null 2>&1 || npm install -g openclaw@latest
 openclaw agents list --json
-openclaw agents add ppt-agent --workspace "$(pwd)" --non-interactive
+openclaw agents add ppt-agent --workspace "$WORKSPACE_DIR" --non-interactive
 openclaw agents list
 ```
 
 If the target agent already exists and already points to this workspace, update the workspace files and reuse the existing registration.
 If the target agent already exists but points to a different workspace, delete it and add it again with the current workspace.
 If the target agent does not exist, add it with the current workspace.
-Reusing or creating the agent from this workspace makes the bundled local skills from `skills/` available through the registered workspace.
+Reusing or creating the agent from this workspace makes the local bridge skills from `skills/` available through the registered workspace, and the installed `skills/slidemax_workflow` runtime skill provides the canonical SlideMax workflow.
+If an older agent session was already open before the runtime skill was linked, start a new session before invoking `slidemax-workflow`.
 If the SlideMax repository is not in the default sibling path, configure `SLIDEMAX_DIR` through the OpenClaw env system before following the runbook.
 
 ## SlideMax Environment Configuration
 
-If the SlideMax repository is not installed at the default sibling path, prefer configuring the companion path through OpenClaw's per-skill env injection for `slidemax-workflow`:
+If the SlideMax repository is not installed at the default sibling path, prefer configuring the companion path through OpenClaw's per-skill env injection for the canonical `slidemax-workflow` skill after `skills/slidemax_workflow` is installed into this workspace:
 
 ```bash
 openclaw config set 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' '"/absolute/path/to/slidemax"'
@@ -172,6 +192,18 @@ After execution, report:
 ./scripts/validate_workspace.sh
 ./tests/test_workspace_structure.sh
 ```
+
+## Final Delivery Requirement
+
+The repository-root `outputs/` directory is only a staging area for generated files.
+Unless the user explicitly asks for a local-only draft, the agent is not done until the final artifact or document-ready package has been sent or published to the requested final delivery document.
+
+Expected delivery behavior:
+
+- Prefer the project final document destination such as a Judao final document or a Feishu document.
+- Report the final artifact path, final destination, and `Delivery status` in the completion message.
+- If the final document destination is missing, ask for it before claiming completion.
+- If publishing is blocked by missing tools, authentication, or network access, still generate the final local artifact and report the exact blocker plus the next manual delivery step.
 
 ## Output Directories
 

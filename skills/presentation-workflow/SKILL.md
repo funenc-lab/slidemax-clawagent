@@ -49,6 +49,7 @@ Recommended progress milestones:
 - slide blueprint complete
 - review or rewrite findings complete
 - final packaging complete
+- final delivery complete or blocked
 
 Each progress update should briefly include:
 
@@ -68,10 +69,12 @@ Identify:
 - desired decision or action
 - duration or slide budget
 - delivery format
+- final delivery destination
 - source material quality
 - brand or style constraints
 
 If any of these are missing, make minimal safe assumptions and state them.
+If the task requires external delivery to a final document destination and that destination is missing, ask for it before claiming completion.
 
 ### 2. Build the narrative spine
 
@@ -138,3 +141,4 @@ If the user needs an actual PPT, PPTX, SVG, or rendered deck artifact, keep `sli
 - speaker notes
 - risk and assumption log
 - final review checklist
+- final delivery package and delivery status

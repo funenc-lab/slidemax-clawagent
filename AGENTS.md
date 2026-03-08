@@ -43,6 +43,7 @@ Use progress updates at natural milestones such as:
 - slide plan completed
 - review findings consolidated
 - final polish started or completed
+- final delivery completed or blocked
 
 Do not spam progress updates for trivial one-shot requests.
 One short update per meaningful milestone is preferred.
@@ -55,6 +56,7 @@ Unless the user asks otherwise, prefer this output order:
 2. Slide-by-slide outline or recommended structure
 3. Assumptions and risks
 4. Recommended next actions
+5. Delivery status
 
 When drafting slide content:
 
@@ -63,6 +65,21 @@ When drafting slide content:
 - Make the ask, decision, or takeaway explicit.
 - Distinguish confirmed facts from inferred conclusions.
 - Prefer fewer stronger slides over many weak slides.
+
+## Final Delivery Contract
+
+Unless the user explicitly asks for a local-only draft, the task is not complete until:
+
+- a final reusable artifact or document-ready package exists
+- the artifact or package has been sent or published to the requested final delivery document
+- the final reply includes the artifact path, final destination, and delivery status
+
+Delivery destination rules:
+
+- Prefer the project final document destination such as a Judao final document or a Feishu document.
+- Treat `outputs/` as a staging area, not the final delivery destination.
+- If a final delivery destination is required but not specified, ask for it before claiming completion.
+- If delivery tooling, authentication, or network access is unavailable, still produce the final local artifact and report the exact blocker plus the next manual delivery step.
 
 ## Output Directory Convention
 
@@ -101,6 +118,8 @@ When the task requires actual slide artifacts instead of only outlines or copy, 
 Required behavior:
 
 - Select `slidemax-workflow` as the primary skill when the user asks for an actual PPT, PPTX, SVG, or generated deck artifact.
+- Install the canonical `slidemax-workflow` skill from `SLIDEMAX_DIR/skills/slidemax_workflow` into `skills/slidemax_workflow` before trying to use it in this workspace.
+- Use the local `slidemax-bridge` skill only to install, repair, or verify that companion workflow skill.
 - Use `presentation-workflow` and `ppt-generation` as supporting skills only when `slidemax-workflow` needs narrative structure, slide blueprints, or clarified inputs before generation.
 - Treat the companion SlideMax repository workflow as the execution layer for slide generation rather than a passive dependency.
 - If SlideMax is not installed locally, state that actual PPT generation is blocked and fall back to outline, review, or notes work only.
@@ -109,14 +128,15 @@ Required behavior:
 
 Use these skills by task type:
 
-- `slidemax-workflow`: primary skill for actual PPT, PPTX, SVG, and generated deck artifact output
+- `slidemax-workflow`: primary skill for actual PPT, PPTX, SVG, and generated deck artifact output, installed from the SlideMax companion repository
+- `slidemax-bridge`: local bridge skill for installing or repairing `skills/slidemax_workflow` in this workspace
 - `presentation-workflow`: broad orchestration for creation, review, rewrite, and conversion tasks, and a supporting skill for SlideMax-ready input preparation
 - `ppt-generation`: generate a new deck blueprint from raw business or technical inputs when SlideMax needs structured content
 - `ppt-review`: critique deck content and return prioritized improvements
 - `speaker-notes`: create talk tracks, transitions, and likely Q&A support
 - `deck-polish`: tighten wording, improve executive readability, and reduce clutter
 
-If the user explicitly requests an actual deck artifact, prefer `slidemax-workflow` first and call `presentation-workflow` or `ppt-generation` only as needed. Otherwise prefer `presentation-workflow` first and then one or more specialized skills.
+If the user explicitly requests an actual deck artifact, prefer `slidemax-workflow` first and call `slidemax-bridge`, `presentation-workflow`, or `ppt-generation` only as needed. Otherwise prefer `presentation-workflow` first and then one or more specialized skills.
 
 ## Heartbeat Behavior
 

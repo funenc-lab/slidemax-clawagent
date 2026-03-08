@@ -22,6 +22,7 @@ Identify or infer:
 - desired decision or action
 - time limit or slide budget
 - presenter role
+- final delivery destination
 - source material confidence
 - must-include facts or constraints
 
@@ -37,6 +38,7 @@ Preferred checkpoints:
 - narrative shape selected
 - message ladder drafted
 - slide blueprint drafted
+- delivery handoff prepared
 - final recommendations prepared
 
 Each progress update should state:
@@ -98,5 +100,6 @@ Default output order:
 3. slide-by-slide blueprint
 4. assumptions and risks
 5. next actions
+6. delivery target and handoff status
 
-If the overall task still requires an actual deck artifact after this blueprint is ready, return control to `slidemax-workflow` for final generation.
+If the overall task still requires an actual deck artifact after this blueprint is ready, return control to `slidemax-workflow` for final generation and final document delivery.
