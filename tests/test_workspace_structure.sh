@@ -142,4 +142,9 @@ if ! grep -q 'raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/
   exit 1
 fi
 
+if ! grep -q 'execution prompt file' "$ROOT_DIR/README.md"; then
+  echo 'README.md should tell AI installers to follow the install prompt file exactly.' >&2
+  exit 1
+fi
+
 echo 'Workspace structure test passed.'

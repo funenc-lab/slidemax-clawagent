@@ -102,6 +102,11 @@ if ! grep -q 'raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/
   missing=1
 fi
 
+if ! grep -q 'execution prompt file' "$ROOT_DIR/README.md"; then
+  echo "README.md must tell AI installers to follow the install prompt file exactly." >&2
+  missing=1
+fi
+
 if [[ "$missing" -ne 0 ]]; then
   exit 1
 fi
