@@ -1,91 +1,109 @@
 # PPT OpenClaw Agent Workspace
 
-This repository is a production-ready OpenClaw agent workspace for presentation and slide-oriented tasks.
+This repository is a production-ready OpenClaw agent workspace for presentation strategy, deck writing, slide review, speaker notes, and delivery execution.
+
+It follows the OpenClaw workspace model: the workspace is the agent's home, prompt layer, local memory surface, and task operating context. This repository is the workspace. It is not the SlideMax companion application and it is not the OpenClaw runtime itself.
 
 ## Executive Summary
 
-This workspace packages a PPT-focused OpenClaw agent with:
+This workspace provides:
 
-- prompt-layer files that define role, tone, tools, and operating rules
-- specialized presentation skills for generation, review, polishing, and speaker support
-- a tiny heartbeat contract for low-noise follow-up behavior
-- validation tooling for repeatable workspace checks
-- smoke tests for workspace structure and install guidance
+- a prompt layer that defines identity, workflow, safety boundaries, tool usage, and heartbeat behavior
+- PPT-specific skills for generation, review, polishing, speaker support, and final delivery
+- a bridge path to the canonical SlideMax workflow used for actual PPT generation
+- validation scripts and smoke tests for repeatable workspace verification
+- a final delivery contract that requires artifact generation, destination delivery, and `Delivery status`
 
-This workspace is intended to be installed together with the SlideMax companion repository used by the agent for actual PPT generation. The canonical repository address is:
+Canonical repositories:
 
-- `https://github.com/funenc-lab/slidemax`
+- SlideMax companion repository: `https://github.com/funenc-lab/slidemax`
+- OpenClaw workspace repository: `https://github.com/funenc-lab/slidemax-clawagent`
 
 For the full AI-oriented installation runbook, see `docs/openclaw-install.md`.
+
+## How This Maps to OpenClaw
+
+According to the OpenClaw workspace model, a workspace should contain the durable operating instructions that shape how the agent behaves in repeated sessions.
+
+In this repository:
+
+- `AGENTS.md` defines the global operating contract, startup order, progress rules, delivery flow, and heartbeat behavior
+- `TOOLS.md` defines local tool notes, runtime paths, validation commands, and delivery tooling boundaries
+- `SOUL.md`, `USER.md`, and `IDENTITY.md` define persona, user preferences, and domain identity
+- `HEARTBEAT.md` keeps the proactive follow-up contract tiny and low-noise
+- `skills/` contains workspace-specific skills and the runtime link target for deck generation
+
+The canonical runtime generation skill is not authored here. It comes from the installed SlideMax companion repository and is linked into this workspace at `skills/slidemax_workflow/SKILL.md`.
 
 ## Companion Requirement
 
 Before registering this workspace with OpenClaw, install the SlideMax companion project from the canonical repository `funenc-lab/slidemax`.
 
-According to the official SlideMax repository, the minimum setup includes:
+Required companion facts:
+
+- the canonical runtime workflow is sourced from `SLIDEMAX_DIR/skills/slidemax_workflow`
+- the runtime skill must appear in this workspace at `skills/slidemax_workflow/SKILL.md`
+- the local file `skills/slidemax-bridge/SKILL.md` is only a bridge skill for install, repair, and verification
+- the local file `skills/final-document-delivery/SKILL.md` handles final delivery after artifacts exist
+- this workspace is usable for outlines, reviews, and notes even when SlideMax is missing, but actual PPT generation remains blocked
+
+According to the companion repository, the minimum setup includes:
 
 - `Python 3.8+`
 - `pip install -r requirements.txt`
-
-This repository does not auto-clone or auto-install SlideMax; that dependency and its workflow role are documented in `docs/openclaw-install.md`.
-
-This repository does not bundle the canonical `slidemax-workflow` implementation.
-The local `skills/slidemax-bridge/SKILL.md` file is only a bridge skill for installation and repair.
-During installation, the AI must install the canonical companion skill from `SLIDEMAX_DIR/skills/slidemax_workflow` into `skills/slidemax_workflow` inside this workspace before the agent can use it for actual PPT generation.
-The remaining local files under `skills/` are workspace-specific skills that become available to the agent through the registered workspace.
-If workspace validation fails, do not register the agent because the local skill set is incomplete or the companion workflow was not installed correctly.
-
-## What it includes
-
-- Standard OpenClaw workspace prompt files: `AGENTS.md`, `SOUL.md`, `TOOLS.md`, `USER.md`, `IDENTITY.md`
-- Core orchestration skill: `skills/presentation-workflow/SKILL.md`
-- Local bridge skill: `skills/slidemax-bridge/SKILL.md`
-- Canonical runtime generation skill installed from the SlideMax companion repo: `skills/slidemax_workflow/SKILL.md`
-- Final delivery skill: `skills/final-document-delivery/SKILL.md`
-- Specialized PPT skills:
-  - `skills/ppt-generation/SKILL.md`
-  - `skills/ppt-review/SKILL.md`
-  - `skills/speaker-notes/SKILL.md`
-  - `skills/deck-polish/SKILL.md`
-- A lightweight proactive heartbeat contract: `HEARTBEAT.md`
-- Validation script: `scripts/validate_workspace.sh`
-- Workspace structure smoke test: `tests/test_workspace_structure.sh`
-- SlideMax companion workflow bridge plus runtime-installed canonical skill for actual PPT generation
-- English AI installation guide: `docs/openclaw-install.md`
 
 ## Workspace Layout
 
 ### Prompt Layer
 
-- `AGENTS.md`: top-level operating contract, output format, progress reporting, heartbeat rules, and skill routing
-- `SOUL.md`: persona, tone, and behavioral traits
-- `TOOLS.md`: tool boundaries, validation guidance, and presentation workflow rules
-- `USER.md`: user-facing response preferences
-- `IDENTITY.md`: agent identity and domain positioning
-- `HEARTBEAT.md`: minimal proactive follow-up conditions and exact no-op reply
+- `AGENTS.md`
+- `TOOLS.md`
+- `SOUL.md`
+- `USER.md`
+- `IDENTITY.md`
+- `HEARTBEAT.md`
 
 ### Skill Layer
 
-- `skills/slidemax-bridge/SKILL.md`: local bridge skill that installs or repairs the canonical SlideMax workflow skill in this workspace
-- `skills/slidemax_workflow/SKILL.md`: canonical runtime skill sourced from the installed SlideMax companion repository for actual PPT generation
-- `skills/final-document-delivery/SKILL.md`: final delivery skill that sends finished artifacts to a Judao final document, Feishu document, or another final destination
-- `skills/presentation-workflow/SKILL.md`: entry workflow for create, review, rewrite, and conversion tasks, and supporting narrative preparation for SlideMax
-- `skills/ppt-generation/SKILL.md`: message-first deck generation from raw input when SlideMax needs structured content
-- `skills/ppt-review/SKILL.md`: structured review and prioritized fixes
-- `skills/speaker-notes/SKILL.md`: talk tracks, transitions, and likely Q&A
-- `skills/deck-polish/SKILL.md`: executive-style tightening and readability improvements
+- `skills/presentation-workflow/SKILL.md`
+- `skills/ppt-generation/SKILL.md`
+- `skills/ppt-review/SKILL.md`
+- `skills/speaker-notes/SKILL.md`
+- `skills/deck-polish/SKILL.md`
+- `skills/slidemax-bridge/SKILL.md`
+- `skills/slidemax_workflow/SKILL.md`
+- `skills/final-document-delivery/SKILL.md`
 
 ### Operational Layer
 
-- `scripts/validate_workspace.sh`: checks required files and key prompt constraints
-- `tests/test_workspace_structure.sh`: smoke test for expected workspace structure
-- `docs/openclaw-install.md`: canonical AI installation runbook with local-state decision rules
+- `scripts/validate_workspace.sh`
+- `tests/test_workspace_structure.sh`
+- `scripts/check_final_delivery_gate.sh`
+- `tests/test_final_delivery_gate.sh`
+- `docs/openclaw-install.md`
 
-The final delivery chain for generated work is:
+## Operating Model
 
-1. build or review the content in this workspace
-2. generate the final artifact with the canonical SlideMax workflow when needed
-3. send or publish the finished result to the requested final document destination through `final-document-delivery`
+This workspace is designed for the full PPT lifecycle, not only for draft generation.
+
+The standard flow is:
+
+1. capture audience, objective, decision, timing, and final delivery destination
+2. gather evidence and existing materials
+3. design the narrative spine
+4. draft slide-by-slide structure and notes
+5. review and polish the content
+6. generate the artifact with SlideMax when an actual PPT, PPTX, or SVG is required
+7. deliver the result to the requested final document destination
+8. if explicitly requested, send the completion message to the target message channel
+9. run the delivery gate and report `Delivery status`
+
+The delivery chain is therefore:
+
+1. content work in this workspace
+2. artifact generation through the canonical SlideMax workflow when needed
+3. publication to a final document destination such as a Judao final document or a Feishu document
+4. optional message-channel handoff when explicitly requested
 
 ## Installation Overview
 
@@ -99,9 +117,9 @@ The expected installation sequence is:
 6. install `openclaw` globally if needed
 7. register this repository as an OpenClaw workspace
 
-## Quick Install
-
 Read `docs/openclaw-install.md` first if an AI agent is performing the installation.
+
+## Quick Install
 
 For a direct manual setup after the prerequisites are ready, use the local-state flow:
 
@@ -129,12 +147,9 @@ openclaw agents add ppt-agent --workspace "$WORKSPACE_DIR" --non-interactive
 openclaw agents list
 ```
 
-If the target agent already exists and already points to this workspace, update the workspace files and reuse the existing registration.
+If the target agent already exists and already points to `WORKSPACE_DIR`, update the workspace files and reuse the existing registration.
 If the target agent already exists but points to a different workspace, delete it and add it again with the current workspace.
 If the target agent does not exist, add it with the current workspace.
-Reusing or creating the agent from this workspace makes the local bridge skills from `skills/` available through the registered workspace, and the installed `skills/slidemax_workflow` runtime skill provides the canonical SlideMax workflow.
-If an older agent session was already open before the runtime skill was linked, start a new session before invoking `slidemax-workflow`.
-If the SlideMax repository is not in the default sibling path, configure `SLIDEMAX_DIR` through the OpenClaw env system before following the runbook.
 
 ## SlideMax Environment Configuration
 
@@ -147,30 +162,13 @@ openclaw config get 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR'
 
 This is the preferred persistent setup for this workspace because OpenClaw applies `skills.entries.<skill>.env` to the host process for the agent run.
 
-If you need a global fallback that also works when OpenClaw runs as a service, put the variable in `~/.openclaw/.env`:
-
-```bash
-mkdir -p ~/.openclaw
-python3 - <<'PY'
-from pathlib import Path
-
-env_path = Path.home() / '.openclaw' / '.env'
-lines = []
-if env_path.exists():
-    lines = [line for line in env_path.read_text().splitlines() if not line.startswith('SLIDEMAX_DIR=')]
-lines.append('SLIDEMAX_DIR=/absolute/path/to/slidemax')
-env_path.write_text('\n'.join(lines) + '\n')
-PY
-```
+If you need a global fallback that also works when OpenClaw runs as a service, put the variable in `~/.openclaw/.env`.
 
 For a one-off shell-only override, use:
 
 ```bash
 export SLIDEMAX_DIR="/absolute/path/to/slidemax"
 ```
-
-OpenClaw's official env precedence is: process environment, current-directory `.env`, `~/.openclaw/.env`, config `env`, then optional shell import.
-For `SLIDEMAX_DIR`, prefer the explicit per-skill config or `~/.openclaw/.env` rather than relying on shell import.
 
 ## AI Install Prompt
 
@@ -209,9 +207,14 @@ Unless the user explicitly asks for a local-only draft, the agent is not done un
 Expected delivery behavior:
 
 - Prefer the project final document destination such as a Judao final document or a Feishu document.
+- If the user explicitly requests a message channel, send that channel message only after the final destination is explicit and the artifact exists.
 - Report the final artifact path, final destination, and `Delivery status` in the completion message.
 - If the final document destination is missing, ask for it before claiming completion.
 - If publishing is blocked by missing tools, authentication, or network access, still generate the final local artifact and report the exact blocker plus the next manual delivery step.
+- Run `scripts/check_final_delivery_gate.sh` before claiming completion for any final deliverable.
+- Treat the CLI of `scripts/check_final_delivery_gate.sh` as the canonical runtime completion contract.
+- `local-only-draft` only passes with explicit local-only approval evidence from the user request.
+- `blocked` only passes after a real delivery attempt and explicit verification evidence for the blocker.
 
 ## Output Directories
 
@@ -219,11 +222,11 @@ Generated local artifacts should be written under the repository-root `outputs/`
 
 Preferred layout:
 
-- `outputs/decks/`: slide blueprints, rewritten deck copy, and deck-ready markdown
-- `outputs/reviews/`: review reports, scored rubrics, and issue lists
-- `outputs/speaker-notes/`: talk tracks, transitions, and Q&A packs
-- `outputs/assets/`: exported images, charts, PDFs, and presentation attachments
-- `outputs/tmp/`: disposable intermediate files that can be regenerated
+- `outputs/decks/`
+- `outputs/reviews/`
+- `outputs/speaker-notes/`
+- `outputs/assets/`
+- `outputs/tmp/`
 
 Naming rules:
 
@@ -231,6 +234,52 @@ Naming rules:
 - prefer `YYYY-MM-DD-topic-slug` task folders
 - keep all files for one task in the same task folder
 - avoid writing generated deliverables to the repository root
+
+## Runtime Completion Gate
+
+Use `scripts/check_final_delivery_gate.sh` to enforce the final delivery contract before claiming completion. The CLI of this script is the canonical runtime completion contract.
+
+Examples:
+
+```bash
+./scripts/check_final_delivery_gate.sh \
+  --artifact-path outputs/decks/2026-03-09-launch/final-deck.pptx \
+  --delivery-status delivered \
+  --destination-type feishu-document \
+  --destination-ref https://example.com/doc/123 \
+  --verification-evidence "Feishu API returned success status 200"
+```
+
+```bash
+./scripts/check_final_delivery_gate.sh \
+  --artifact-path outputs/decks/2026-03-09-launch/final-deck.pptx \
+  --delivery-status blocked \
+  --destination-type judao-final-document \
+  --destination-ref JD-123 \
+  --attempted-delivery \
+  --verification-evidence "Browser returned 401 after upload attempt" \
+  --blocker "Missing browser authentication" \
+  --next-manual-step "Sign in and rerun delivery"
+```
+
+A local-only draft may pass the gate only when the user explicitly requested a local-only result:
+
+```bash
+./scripts/check_final_delivery_gate.sh \
+  --artifact-path outputs/decks/2026-03-09-launch/draft.md \
+  --delivery-status local-only-draft \
+  --local-only-approval-evidence "User explicitly asked for a local-only draft in the thread"
+```
+
+## Security and Scope
+
+This repository should contain workspace instructions, skills, validation scripts, and reusable generated outputs. It should not be treated as a credential store.
+
+Recommended practice:
+
+- keep the workspace repository private when it contains sensitive operating context
+- avoid storing secrets in workspace files
+- keep large generated assets in `outputs/` and promote only durable instructions into the prompt layer
 
 ## Assumptions
 
@@ -245,4 +294,5 @@ Naming rules:
 - add richer companion health checks or upgrade guidance to the install runbook
 - add richer `.pptx` handling or export workflows
 - add more domain skills such as board updates, sales pitches, or technical design reviews
+- add message-channel specific delivery adapters or templates
 - add troubleshooting, upgrade, or uninstall guidance to `docs/openclaw-install.md`

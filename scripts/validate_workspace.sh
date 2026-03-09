@@ -18,9 +18,11 @@ required_files=(
   "skills/deck-polish/SKILL.md"
   "skills/slidemax-bridge/SKILL.md"
   "skills/final-document-delivery/SKILL.md"
+  "scripts/check_final_delivery_gate.sh"
   "scripts/validate_workspace.sh"
   "docs/openclaw-install.md"
   "tests/test_workspace_structure.sh"
+  "tests/test_final_delivery_gate.sh"
 )
 
 missing=0
@@ -69,7 +71,9 @@ for required_text in \
   'SLIDEMAX_DIR/skills/slidemax_workflow' \
   'Select `slidemax-workflow` as the primary skill' \
   'Judao final document' \
-  'Delivery status'; do
+  'Delivery status' \
+  'scripts/check_final_delivery_gate.sh' \
+  'canonical runtime completion contract'; do
   if ! grep -Fq "$required_text" "$ROOT_DIR/AGENTS.md"; then
     echo "AGENTS.md missing required text: $required_text" >&2
     missing=1
@@ -82,7 +86,9 @@ for required_text in \
   'slidemax-workflow' \
   'skills/slidemax-bridge/SKILL.md' \
   'SLIDEMAX_DIR/skills/slidemax_workflow' \
-  'final delivery document'; do
+  'final delivery document' \
+  'scripts/check_final_delivery_gate.sh' \
+  'canonical runtime completion contract'; do
   if ! grep -Fq "$required_text" "$ROOT_DIR/TOOLS.md"; then
     echo "TOOLS.md missing required text: $required_text" >&2
     missing=1
@@ -148,7 +154,9 @@ for required_text in \
   '~/.openclaw/.env' \
   'Judao final document' \
   'Feishu document' \
-  'Delivery status'; do
+  'Delivery status' \
+  'scripts/check_final_delivery_gate.sh' \
+  'canonical runtime completion contract'; do
   if ! grep -Fq "$required_text" "$ROOT_DIR/README.md"; then
     echo "README.md missing required text: $required_text" >&2
     missing=1
@@ -193,6 +201,21 @@ if ! grep -Fq 'delivery status' "$ROOT_DIR/USER.md"; then
   echo "USER.md must require delivery status in final responses." >&2
   missing=1
 fi
+
+if ! grep -Fq 'scripts/check_final_delivery_gate.sh' "$ROOT_DIR/skills/final-document-delivery/SKILL.md"; then
+  echo "final-document-delivery must require the runtime completion gate." >&2
+  missing=1
+fi
+
+for required_text in \
+  '--verification-evidence' \
+  '--local-only-approval-evidence' \
+  '--attempted-delivery'; do
+  if ! grep -Fq -- "$required_text" "$ROOT_DIR/scripts/check_final_delivery_gate.sh" "$ROOT_DIR/README.md"; then
+    echo "Completion gate contract missing required text: $required_text" >&2
+    missing=1
+  fi
+done
 
 if [[ "$missing" -ne 0 ]]; then
   exit 1

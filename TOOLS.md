@@ -1,67 +1,81 @@
-# Tool Usage Guide
+# TOOLS.md - PPT Workspace Local Notes
 
-## General Rules
+Skills define how tools work. This file records local tool notes, runtime paths, delivery boundaries, and validation commands for this workspace.
 
-- Use browsing or browser-capable tools for current facts, citations, competitor scans, and visual verification.
-- Use filesystem and editing tools to create reusable artifacts such as outlines, notes, checklists, tables, scripts, and templates.
-- Use browser, document, or channel-capable tools together with `final-document-delivery` to publish the final artifact to the requested final delivery document when external delivery is required.
-- Use code execution only when it clearly improves accuracy, repeatability, or validation.
-- Validate important outputs before completion.
+Keep global behavior in `AGENTS.md`.
+Keep proactive follow-up behavior in `HEARTBEAT.md`.
+Use this file only for tool-specific constraints, environment details, and execution notes.
 
 ## Canonical Contracts
 
-- `AGENTS.md` is the canonical source for global output order, progress reporting, and reusable artifact placement.
-- `HEARTBEAT.md` is the canonical source for proactive follow-up triggers and the exact no-op reply.
-- This file should only add tool-specific constraints that refine those contracts.
+- `AGENTS.md` is the canonical source for global workflow, progress reporting, output order, and delivery expectations.
+- `HEARTBEAT.md` is the canonical source for proactive follow-up triggers and the exact idle response.
+- `scripts/check_final_delivery_gate.sh` is the canonical runtime completion contract for final deliverables.
+- This file should refine those contracts with local tool guidance instead of duplicating them wholesale.
 
-## Presentation Workflow
+## Local Tool Priorities
 
-When building or reviewing presentation material:
+Use the lightest tool that can produce a reliable result:
 
-1. Identify the audience, objective, time limit, and expected decision.
-2. Build the narrative spine before drafting slide-level content.
-3. Keep evidence traceable to a source or mark it as an assumption.
-4. Produce speaker notes when delivery or persuasion matters.
-5. End with concrete decisions, asks, owners, or next actions.
+- Use browsing or browser-capable tools for official documentation, current facts, citations, competitor scans, and visual verification.
+- Use filesystem and editing tools for reusable local artifacts such as outlines, notes, reviews, scripts, manifests, and delivery packages.
+- Use command execution when it improves repeatability, validation, or artifact generation.
+- Validate important outputs before claiming completion.
 
-## Tool-Specific Progress Guidance
+## Slide Generation Tools
 
-- Follow the progress structure defined in `AGENTS.md`.
-- Use tool calls only when they materially advance the current stage.
-- Keep progress updates short and high-signal rather than narrating every command.
+When the requested output is an actual PPT, PPTX, SVG, or generated deck artifact:
 
-## Review Rubric
+- Invoke `slidemax-workflow` as the primary skill.
+- The canonical implementation must come from `SLIDEMAX_DIR/skills/slidemax_workflow`.
+- Install that canonical skill into this workspace at `skills/slidemax_workflow` before use.
+- Use `skills/slidemax-bridge/SKILL.md` only to install, repair, or verify the runtime link.
+- Use `presentation-workflow` or `ppt-generation` only as supporting preparation steps when `slidemax-workflow` needs structured input.
+- If SlideMax is unavailable locally, report that artifact generation is blocked and continue with non-rendered deliverables only.
 
-For reviews and rewrites, assess:
+## Delivery Tools
 
-- message clarity
-- audience relevance
-- evidence sufficiency
-- slide density
-- recommendation strength
-- delivery readiness
+When a final artifact must reach an external destination:
+
+- Use `final-document-delivery` for a Judao final document, Feishu document, or another final delivery document.
+- Treat repository `outputs/` paths as staging only unless the user explicitly asked for a local-only result.
+- Do not treat a local artifact as complete delivery when the requested final destination has not been updated.
+- If the user explicitly requests a message channel delivery, send that channel message only after the final artifact exists and the destination is explicit.
+- Report the artifact path, final destination, delivery channel status, and delivery status before claiming completion.
+
+## Validation Commands
+
+Use these checks before completion when they apply:
+
+- `bash scripts/validate_workspace.sh`
+- `bash tests/test_workspace_structure.sh`
+- `bash scripts/check_final_delivery_gate.sh ...`
+
+Do not claim completion for any final deliverable until `scripts/check_final_delivery_gate.sh` or an equivalent wrapper confirms the required fields.
 
 ## Heartbeat Safety
 
 - Follow `HEARTBEAT.md` for trigger conditions and the exact idle response.
 - Do not browse the web or run heavy tools for heartbeat checks unless the user explicitly asked for monitoring.
 - Prefer silence over low-confidence proactive messages.
+- Keep heartbeat actions small, concrete, and low-noise.
 
-## Output Preferences
+## Local Environment Notes
 
-- Follow the default output order defined in `AGENTS.md` unless the user asks otherwise.
-- Use tables when comparing options, risks, or slide plans.
-- Make implicit assumptions explicit.
-- Call out missing inputs before overcommitting to specifics.
-- Report the final artifact path, final delivery destination, and delivery status before claiming completion.
-- Treat repository `outputs/` paths as staging only unless the user explicitly asked for a local-only result.
-- Use `final-document-delivery` whenever the final destination is a Judao final document, Feishu document, or another external final document.
-## SlideMax Usage
+- This repository is the OpenClaw workspace, not the SlideMax companion application.
+- The companion SlideMax repository provides the runtime deck generation workflow.
+- Prefer the OpenClaw per-skill env configuration for `slidemax-workflow`:
+  - `openclaw config set 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' '"/absolute/path/to/slidemax"'`
+  - `openclaw config get 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR'`
+- For service or machine-wide fallback, use `~/.openclaw/.env`.
+- For one-off shell overrides, use `export SLIDEMAX_DIR="/absolute/path/to/slidemax"`.
 
-- When the requested output is an actual PPT, PPTX, SVG, or generated slide artifact, invoke `slidemax-workflow` as the primary skill. The canonical implementation must come from `SLIDEMAX_DIR/skills/slidemax_workflow`.
-- Install that canonical skill into this workspace at `skills/slidemax_workflow` before use; use `skills/slidemax-bridge/SKILL.md` only to install or repair the runtime link.
-- Use `presentation-workflow` or `ppt-generation` only as supporting preparation steps when `slidemax-workflow` lacks the structured inputs needed for generation.
-- For persistent companion path configuration, prefer the OpenClaw per-skill env path: `openclaw config set 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' '"/absolute/path/to/slidemax"'`.
-- For service or machine-wide fallback, use `~/.openclaw/.env`; for one-off shell overrides, use `export SLIDEMAX_DIR="/absolute/path/to/slidemax"`.
-- If SlideMax is unavailable locally, report that PPT artifact generation is blocked and continue with non-rendered deliverables only.
-- If a generated deck must be delivered to a final document destination such as a Judao final document or a Feishu document, do not treat the task as complete until that delivery succeeds or a concrete delivery blocker is reported.
+## What Does Not Belong Here
+
+Do not put these here unless they are directly tool-specific:
+
+- agent personality
+- presentation narrative principles
+- generic review rubrics
+- heartbeat content rules
+- long-form workflow descriptions better owned by `AGENTS.md`

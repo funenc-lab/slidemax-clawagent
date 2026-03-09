@@ -96,6 +96,8 @@ Do not silently downgrade to a local-only result.
 ### 5. Verify the destination state
 
 After delivery, verify at least one of the following:
+After the delivery outcome is known, run `scripts/check_final_delivery_gate.sh` with the artifact path, delivery status, destination details, verification evidence, blocker metadata when applicable, and local-only approval evidence when applicable before claiming completion. The CLI of that script is the canonical runtime completion contract.
+
 
 - the destination document was updated
 - the destination link is reachable and contains the expected content
