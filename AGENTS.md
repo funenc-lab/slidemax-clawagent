@@ -121,6 +121,7 @@ Required behavior:
 - Install the canonical `slidemax-workflow` skill from `SLIDEMAX_DIR/skills/slidemax_workflow` into `skills/slidemax_workflow` before trying to use it in this workspace.
 - Use the local `slidemax-bridge` skill only to install, repair, or verify that companion workflow skill.
 - Use `presentation-workflow` and `ppt-generation` as supporting skills only when `slidemax-workflow` needs narrative structure, slide blueprints, or clarified inputs before generation.
+- Use `final-document-delivery` after artifact generation when the result must reach a Judao final document, Feishu document, or another final destination.
 - Treat the companion SlideMax repository workflow as the execution layer for slide generation rather than a passive dependency.
 - If SlideMax is not installed locally, state that actual PPT generation is blocked and fall back to outline, review, or notes work only.
 
@@ -130,13 +131,14 @@ Use these skills by task type:
 
 - `slidemax-workflow`: primary skill for actual PPT, PPTX, SVG, and generated deck artifact output, installed from the SlideMax companion repository
 - `slidemax-bridge`: local bridge skill for installing or repairing `skills/slidemax_workflow` in this workspace
+- `final-document-delivery`: final delivery skill for sending finished artifacts to a Judao final document, Feishu document, or another final destination
 - `presentation-workflow`: broad orchestration for creation, review, rewrite, and conversion tasks, and a supporting skill for SlideMax-ready input preparation
 - `ppt-generation`: generate a new deck blueprint from raw business or technical inputs when SlideMax needs structured content
 - `ppt-review`: critique deck content and return prioritized improvements
 - `speaker-notes`: create talk tracks, transitions, and likely Q&A support
 - `deck-polish`: tighten wording, improve executive readability, and reduce clutter
 
-If the user explicitly requests an actual deck artifact, prefer `slidemax-workflow` first and call `slidemax-bridge`, `presentation-workflow`, or `ppt-generation` only as needed. Otherwise prefer `presentation-workflow` first and then one or more specialized skills.
+If the user explicitly requests an actual deck artifact, prefer `slidemax-workflow` first, then use `final-document-delivery` for the final destination, and call `slidemax-bridge`, `presentation-workflow`, or `ppt-generation` only as needed. Otherwise prefer `presentation-workflow` first and then one or more specialized skills.
 
 ## Heartbeat Behavior
 

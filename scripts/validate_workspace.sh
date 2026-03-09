@@ -17,6 +17,7 @@ required_files=(
   "skills/speaker-notes/SKILL.md"
   "skills/deck-polish/SKILL.md"
   "skills/slidemax-bridge/SKILL.md"
+  "skills/final-document-delivery/SKILL.md"
   "scripts/validate_workspace.sh"
   "docs/openclaw-install.md"
   "tests/test_workspace_structure.sh"
@@ -64,6 +65,7 @@ done
 for required_text in \
   'slidemax-workflow' \
   'slidemax-bridge' \
+  'final-document-delivery' \
   'SLIDEMAX_DIR/skills/slidemax_workflow' \
   'Select `slidemax-workflow` as the primary skill' \
   'Judao final document' \
@@ -102,6 +104,7 @@ for required_text in \
   'SLIDEMAX_DIR/skills/slidemax_workflow' \
   'skills/slidemax-bridge/SKILL.md' \
   'skills/slidemax_workflow/SKILL.md' \
+  'skills/final-document-delivery/SKILL.md' \
   'ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
   'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \
   'openclaw agents list --json' \
@@ -138,6 +141,7 @@ for required_text in \
   'clone it first' \
   'skills/slidemax-bridge/SKILL.md' \
   'skills/slidemax_workflow/SKILL.md' \
+  'skills/final-document-delivery/SKILL.md' \
   'SLIDEMAX_DIR/skills/slidemax_workflow' \
   'ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
   'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \

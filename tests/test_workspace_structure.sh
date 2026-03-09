@@ -18,6 +18,7 @@ required_files=(
   "skills/speaker-notes/SKILL.md"
   "skills/deck-polish/SKILL.md"
   "skills/slidemax-bridge/SKILL.md"
+  "skills/final-document-delivery/SKILL.md"
   "docs/openclaw-install.md"
 )
 
@@ -54,7 +55,7 @@ if [[ "$heartbeat_size" -gt 800 ]]; then
   exit 1
 fi
 
-for skill_name in 'presentation-workflow' 'ppt-generation' 'ppt-review' 'speaker-notes' 'deck-polish' 'slidemax-workflow' 'slidemax-bridge'; do
+for skill_name in 'presentation-workflow' 'ppt-generation' 'ppt-review' 'speaker-notes' 'deck-polish' 'slidemax-workflow' 'slidemax-bridge' 'final-document-delivery'; do
   if ! grep -Fq "$skill_name" "$ROOT_DIR/AGENTS.md"; then
     echo "AGENTS.md must reference skill: $skill_name" >&2
     exit 1
@@ -76,6 +77,7 @@ done
 for required_text in \
   'skills/slidemax-bridge/SKILL.md' \
   'skills/slidemax_workflow/SKILL.md' \
+  'skills/final-document-delivery/SKILL.md' \
   'SLIDEMAX_DIR/skills/slidemax_workflow' \
   'ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
   'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \

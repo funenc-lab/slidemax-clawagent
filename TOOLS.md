@@ -4,7 +4,7 @@
 
 - Use browsing or browser-capable tools for current facts, citations, competitor scans, and visual verification.
 - Use filesystem and editing tools to create reusable artifacts such as outlines, notes, checklists, tables, scripts, and templates.
-- Use browser, document, or channel-capable tools to publish the final artifact to the requested final delivery document when external delivery is required.
+- Use browser, document, or channel-capable tools together with `final-document-delivery` to publish the final artifact to the requested final delivery document when external delivery is required.
 - Use code execution only when it clearly improves accuracy, repeatability, or validation.
 - Validate important outputs before completion.
 
@@ -55,6 +55,7 @@ For reviews and rewrites, assess:
 - Call out missing inputs before overcommitting to specifics.
 - Report the final artifact path, final delivery destination, and delivery status before claiming completion.
 - Treat repository `outputs/` paths as staging only unless the user explicitly asked for a local-only result.
+- Use `final-document-delivery` whenever the final destination is a Judao final document, Feishu document, or another external final document.
 ## SlideMax Usage
 
 - When the requested output is an actual PPT, PPTX, SVG, or generated slide artifact, invoke `slidemax-workflow` as the primary skill. The canonical implementation must come from `SLIDEMAX_DIR/skills/slidemax_workflow`.

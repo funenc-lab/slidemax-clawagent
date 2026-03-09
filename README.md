@@ -41,6 +41,7 @@ If workspace validation fails, do not register the agent because the local skill
 - Core orchestration skill: `skills/presentation-workflow/SKILL.md`
 - Local bridge skill: `skills/slidemax-bridge/SKILL.md`
 - Canonical runtime generation skill installed from the SlideMax companion repo: `skills/slidemax_workflow/SKILL.md`
+- Final delivery skill: `skills/final-document-delivery/SKILL.md`
 - Specialized PPT skills:
   - `skills/ppt-generation/SKILL.md`
   - `skills/ppt-review/SKILL.md`
@@ -67,6 +68,7 @@ If workspace validation fails, do not register the agent because the local skill
 
 - `skills/slidemax-bridge/SKILL.md`: local bridge skill that installs or repairs the canonical SlideMax workflow skill in this workspace
 - `skills/slidemax_workflow/SKILL.md`: canonical runtime skill sourced from the installed SlideMax companion repository for actual PPT generation
+- `skills/final-document-delivery/SKILL.md`: final delivery skill that sends finished artifacts to a Judao final document, Feishu document, or another final destination
 - `skills/presentation-workflow/SKILL.md`: entry workflow for create, review, rewrite, and conversion tasks, and supporting narrative preparation for SlideMax
 - `skills/ppt-generation/SKILL.md`: message-first deck generation from raw input when SlideMax needs structured content
 - `skills/ppt-review/SKILL.md`: structured review and prioritized fixes
@@ -78,6 +80,12 @@ If workspace validation fails, do not register the agent because the local skill
 - `scripts/validate_workspace.sh`: checks required files and key prompt constraints
 - `tests/test_workspace_structure.sh`: smoke test for expected workspace structure
 - `docs/openclaw-install.md`: canonical AI installation runbook with local-state decision rules
+
+The final delivery chain for generated work is:
+
+1. build or review the content in this workspace
+2. generate the final artifact with the canonical SlideMax workflow when needed
+3. send or publish the finished result to the requested final document destination through `final-document-delivery`
 
 ## Installation Overview
 

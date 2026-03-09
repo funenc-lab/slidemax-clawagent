@@ -474,11 +474,16 @@ Notes:
 
 These files are workspace-specific bridge skills made available to the agent by registering this workspace.
 The canonical runtime `slidemax-workflow` skill is installed from the companion repository into `skills/slidemax_workflow` during Step 5.
+The local `skills/final-document-delivery/SKILL.md` skill handles the final publish or send step after artifact generation.
 If any required bridge file is missing, do not register or reuse the workspace until validation passes.
 
 - `skills/presentation-workflow/SKILL.md`
   - the workflow entry point for creation, review, rewrite, and conversion tasks
   - prepares narrative inputs before handing actual deck generation to SlideMax when needed
+
+- `skills/final-document-delivery/SKILL.md`
+  - sends the finished artifact or document-ready package to a Judao final document, Feishu document, or another final destination
+  - reports the final delivery status or a concrete delivery blocker
 
 - `skills/ppt-generation/SKILL.md`
   - generates message-first deck blueprints from raw inputs
