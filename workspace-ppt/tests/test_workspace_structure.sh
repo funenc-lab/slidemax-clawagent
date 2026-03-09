@@ -2,9 +2,10 @@
 set -euo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-REPO_DIR=$(cd "$ROOT_DIR/../.." && pwd)
+REPO_DIR=$(cd "$ROOT_DIR/.." && pwd)
 
 required_files=(
+  "README.md"
   "AGENTS.md"
   "SOUL.md"
   "TOOLS.md"
@@ -35,8 +36,8 @@ if [[ -e "$ROOT_DIR/docs" ]]; then
   exit 1
 fi
 
-if [[ "$(basename "$ROOT_DIR")" != "ppt" || "$(basename "$(dirname "$ROOT_DIR")")" != "agents" ]]; then
-  echo 'Workspace root must live under agents/ppt.' >&2
+if [[ "$(basename "$ROOT_DIR")" != "workspace-ppt" ]]; then
+  echo 'Workspace root must live at workspace-ppt.' >&2
   exit 1
 fi
 
@@ -65,6 +66,13 @@ for required_repo_path in 'README.md' '.gitignore' 'docs/openclaw-install.md'; d
   fi
 done
 
+for required_agent_path in 'agents/ppt' 'agents/ppt/.openclaw' 'agents/ppt/README.md'; do
+  if [[ ! -e "$REPO_DIR/$required_agent_path" ]]; then
+    echo "Repository root missing required agent path: $required_agent_path" >&2
+    exit 1
+  fi
+done
+
 if [[ -e "$ROOT_DIR/skills/slidemax-bridge" ]]; then
   echo 'skills/slidemax-bridge should not exist; SlideMax must be acquired during installation.' >&2
   exit 1
@@ -86,7 +94,7 @@ if grep -Eq '^HEARTBEAT\.md$' "$ROOT_DIR/.gitignore"; then
 fi
 
 if ! grep -Fq 'skills/slidemax_workflow' "$ROOT_DIR/.gitignore"; then
-  echo 'The runtime companion skill link should be ignored.' >&2
+  echo 'The runtime installed companion skill directory should be ignored.' >&2
   exit 1
 fi
 
@@ -124,11 +132,14 @@ for required_text in \
   'You may start from the repository root, the workspace root, or a parent directory where the repository may need to be cloned.' \
   'CURRENT_DIR=$(pwd)' \
   'Repository remote is not the canonical slidemax-clawagent repository' \
-  'The repository root is `REPO_DIR`, and the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/agents/ppt"`' \
+  'The repository root is `REPO_DIR`, the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/workspace-ppt"`, and the agent data root is `AGENT_DIR="$REPO_DIR/agents/ppt"`' \
   'Unless explicitly noted otherwise, every path in this section is relative to `WORKSPACE_DIR`.' \
+  'AGENT_DIR="$REPO_DIR/agents/ppt"' \
   'REPO_DIR/docs/openclaw-install.md' \
-  'ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
+  'rm -rf "$WORKSPACE_DIR/skills/slidemax_workflow"' \
+  'cp -R "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
   'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \
+  'workspace-ppt' \
   'agents/ppt' \
   'Judao final document' \
   'Feishu document' \

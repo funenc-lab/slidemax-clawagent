@@ -7,7 +7,7 @@ It is also the canonical prompt file that can be referenced locally or through t
 The goal is to ensure the AI completes the installation in the correct order:
 
 1. Install the SlideMax companion repository used for actual PPT generation
-2. Register the PPT workspace at `agents/ppt` as an OpenClaw agent workspace
+2. Register the PPT workspace at `workspace-ppt` as an OpenClaw agent workspace
 
 Key facts:
 
@@ -16,9 +16,9 @@ Key facts:
 - Only the canonical `funenc-lab/slidemax` remote is supported by this installation flow
 - The agent uses the installed SlideMax repository as the canonical workflow skill backend for actual PPT generation
 - The canonical workflow skill file is `SLIDEMAX_DIR/skills/slidemax_workflow/SKILL.md`
-- During installation, that companion skill must be installed into the workspace at `WORKSPACE_DIR/skills/slidemax_workflow`
-- The repository root is `REPO_DIR`, and the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/agents/ppt"`
-- This repository contains the OpenClaw agent repository and the PPT workspace under `agents/ppt`, not the SlideMax companion application itself
+- During installation, that companion skill must be copy-installed into the workspace at `WORKSPACE_DIR/skills/slidemax_workflow`
+- The repository root is `REPO_DIR`, the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/workspace-ppt"`, and the agent data root is `AGENT_DIR="$REPO_DIR/agents/ppt"`
+- This repository contains the OpenClaw agent repository, the complete PPT workspace under `workspace-ppt`, and the PPT agent data directory under `agents/ppt`, not the SlideMax companion application itself
 - This runbook does not rely on an install helper script
 - The AI should determine the local OpenClaw action directly from the observed local state
 
@@ -86,7 +86,7 @@ The installation is considered complete only when all of the following are true:
 - the companion repository remote is canonical `funenc-lab/slidemax`
 - the companion repository dependency installation command succeeds
 - `SLIDEMAX_DIR/skills/slidemax_workflow/SKILL.md` exists
-- `WORKSPACE_DIR/skills/slidemax_workflow/SKILL.md` exists and resolves to the companion skill
+- `WORKSPACE_DIR/skills/slidemax_workflow/SKILL.md` exists as an installed copy of the canonical companion skill
 - `./scripts/validate_workspace.sh` succeeds
 - `./tests/test_workspace_structure.sh` succeeds
 - `openclaw agents list` shows the agent after the chosen install or update path
@@ -142,7 +142,8 @@ outputs/
 ### Step 0: Acquire and Verify the Repository Root and Workspace Root
 
 Treat the exact repository path as the absolute path of the local `slidemax-clawagent` repository root.
-Treat the exact workspace path as the absolute path of the local `slidemax-clawagent` repository root plus `/agents/ppt`.
+Treat the exact workspace path as the absolute path of the local `slidemax-clawagent` repository root plus `/workspace-ppt`.
+Treat the exact agent data path as the absolute path of the local `slidemax-clawagent` repository root plus `/agents/ppt`.
 Do not treat an arbitrary current directory as the workspace path.
 
 You may start from the repository root, the workspace root, or a parent directory where the repository may need to be cloned.
@@ -153,10 +154,9 @@ CURRENT_DIR=$(pwd)
 
 if [ -d "$CURRENT_DIR/.git" ]; then
   REPO_DIR="$CURRENT_DIR"
-elif [ "$(basename "$CURRENT_DIR")" = "ppt" ] && \
-     [ "$(basename "$(dirname "$CURRENT_DIR")")" = "agents" ] && \
-     [ -d "$CURRENT_DIR/../../.git" ]; then
-  REPO_DIR=$(cd "$CURRENT_DIR/../.." && pwd)
+elif [ "$(basename "$CURRENT_DIR")" = "workspace-ppt" ] && \
+     [ -d "$CURRENT_DIR/../.git" ]; then
+  REPO_DIR=$(cd "$CURRENT_DIR/.." && pwd)
 else
   REPO_DIR="${CURRENT_DIR}/slidemax-clawagent"
   if [ -d "$REPO_DIR/.git" ]; then
@@ -181,8 +181,10 @@ case "$REPO_ORIGIN" in
     ;;
 esac
 
-WORKSPACE_DIR="${REPO_DIR}/agents/ppt"
+WORKSPACE_DIR="${REPO_DIR}/workspace-ppt"
+AGENT_DIR="${REPO_DIR}/agents/ppt"
 test -d "$WORKSPACE_DIR"
+mkdir -p "$AGENT_DIR/.openclaw"
 test -f "$REPO_DIR/docs/openclaw-install.md"
 
 cd "$WORKSPACE_DIR"
@@ -194,10 +196,11 @@ Rules:
 
 - if the repository does not exist locally, clone `https://github.com/funenc-lab/slidemax-clawagent.git`
 - if the current directory is already the repository root, reuse it instead of nesting another clone
-- if the current directory is already `agents/ppt`, derive `REPO_DIR` by traversing up two levels
+- if the current directory is already `workspace-ppt`, derive `REPO_DIR` by traversing up one level
 - if the repository remote is not the canonical `funenc-lab/slidemax-clawagent` remote, stop and report the mismatch
 - if the target repository path exists but is not a Git repository, stop and report the conflict
 - if `"$WORKSPACE_DIR"` is missing, stop immediately
+- create `"$AGENT_DIR/.openclaw"` when the agent data directory or its runtime state directory is missing
 - if `"$REPO_DIR/docs/openclaw-install.md"` is missing, stop immediately
 - if `"$WORKSPACE_DIR/scripts/validate_workspace.sh"` is missing, stop immediately
 - if `"$WORKSPACE_DIR/tests/test_workspace_structure.sh"` is missing, stop immediately
@@ -206,6 +209,7 @@ Then report:
 
 - the exact repository path
 - the exact workspace path
+- the exact agent data path
 - that the current shell is now inside the workspace root
 
 ### Step 1: Resolve Paths
@@ -214,7 +218,8 @@ After entering the workspace root, compute the local paths:
 
 ```bash
 WORKSPACE_DIR=$(pwd)
-REPO_DIR=$(cd "$WORKSPACE_DIR/../.." && pwd)
+REPO_DIR=$(cd "$WORKSPACE_DIR/.." && pwd)
+AGENT_DIR="${REPO_DIR}/agents/ppt"
 PARENT_DIR=$(dirname "$REPO_DIR")
 SLIDEMAX_DIR="${PARENT_DIR}/slidemax"
 WORKSPACE_SLIDEMAX_SKILL_DIR="$WORKSPACE_DIR/skills/slidemax_workflow"
@@ -225,6 +230,7 @@ Then report:
 
 - the exact repository path
 - the exact workspace path
+- the exact agent data path
 - the chosen SlideMax companion repository path
 
 If the user explicitly provided a custom companion path, use that path instead.
@@ -355,14 +361,8 @@ After the SlideMax repository is ready, return to this workspace and install the
 cd "$WORKSPACE_DIR"
 test -f "$SLIDEMAX_DIR/skills/slidemax_workflow/SKILL.md"
 
-if [ -L "$WORKSPACE_DIR/skills/slidemax_workflow" ]; then
-  rm "$WORKSPACE_DIR/skills/slidemax_workflow"
-elif [ -e "$WORKSPACE_DIR/skills/slidemax_workflow" ]; then
-  echo "Target workspace skill path already exists and is not a symlink: $WORKSPACE_DIR/skills/slidemax_workflow" >&2
-  exit 1
-fi
-
-ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"
+rm -rf "$WORKSPACE_DIR/skills/slidemax_workflow"
+cp -R "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"
 test -f "$WORKSPACE_DIR/skills/slidemax_workflow/SKILL.md"
 openclaw config set 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' "\"$SLIDEMAX_DIR\""
 openclaw config get 'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR'
@@ -375,7 +375,8 @@ Rules:
 
 - the runtime `slidemax-workflow` skill must come from `SLIDEMAX_DIR/skills/slidemax_workflow`, not from a hand-written local replacement
 - install that canonical companion skill into `WORKSPACE_DIR/skills/slidemax_workflow` before agent registration
-- if the workspace skill target exists and is not a symlink, stop and report the conflict
+- refresh the installed workspace copy from the canonical companion path on every install or update run
+- do not mount or symlink `WORKSPACE_DIR/skills/slidemax_workflow`; the installation contract requires a copied directory
 - if either validation command fails, do not continue to agent registration
 
 These validation steps are also the guardrail for the dynamically installed companion workflow: if they fail, the agent must not be registered because the local skill surface is not trusted as complete.
@@ -433,9 +434,9 @@ openclaw agents delete ppt-agent
 openclaw agents add ppt-agent --workspace "$WORKSPACE_DIR" --non-interactive
 ```
 
-When this add or replace action succeeds, the workspace-local bridge files under `skills/` become available to the agent through the registered workspace.
+When this add or replace action succeeds, the workspace-local skill files under `skills/` become available to the agent through the registered workspace.
 The canonical `slidemax-workflow` skill should already have been installed during Step 5 at `skills/slidemax_workflow`, sourced from the SlideMax companion repository.
-OpenClaw then loads that runtime skill from the workspace path on demand.
+OpenClaw then loads that installed runtime skill copy from the workspace path on demand.
 
 If the user provided a custom agent name, replace `ppt-agent` with that name in the inspection, delete, and add commands.
 
@@ -552,11 +553,15 @@ If any required workspace skill file is missing, do not register or reuse the wo
 
 ## Repository-Level Files
 
-The following file is repository-scoped and is not part of the registered workspace payload:
+The following paths are repository-scoped and are not part of the registered workspace payload:
 
 - `REPO_DIR/docs/openclaw-install.md`
   - the repository-level installation runbook for cloning, validation, and OpenClaw registration
   - must remain outside `WORKSPACE_DIR`
+
+- `AGENT_DIR`
+  - the agent-side data directory for the PPT agent
+  - holds `.openclaw` state and future runtime-local files without polluting the workspace prompt layer
 
 ## HEARTBEAT and Progress Reporting
 
