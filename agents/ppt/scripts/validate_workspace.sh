@@ -5,6 +5,7 @@ ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 REPO_DIR=$(cd "$ROOT_DIR/../.." && pwd)
 
 required_files=(
+  "README.md"
   "AGENTS.md"
   "SOUL.md"
   "TOOLS.md"
@@ -25,6 +26,26 @@ required_files=(
 )
 
 missing=0
+
+require_text() {
+  local file_path=$1
+  local expected_text=$2
+  local label=$3
+  if ! grep -Fq -- "$expected_text" "$file_path"; then
+    echo "$label missing required text: $expected_text" >&2
+    missing=1
+  fi
+}
+
+forbid_text() {
+  local file_path=$1
+  local forbidden_text=$2
+  local label=$3
+  if grep -Fqi -- "$forbidden_text" "$file_path"; then
+    echo "$label must not mention: $forbidden_text" >&2
+    missing=1
+  fi
+}
 
 if [[ "$(basename "$ROOT_DIR")" != "ppt" || "$(basename "$(dirname "$ROOT_DIR")")" != "agents" ]]; then
   echo "Workspace root must live under agents/ppt." >&2
@@ -79,7 +100,7 @@ if grep -Eq '^HEARTBEAT\.md$' "$ROOT_DIR/.gitignore"; then
 fi
 
 if ! grep -Fq 'skills/slidemax_workflow' "$ROOT_DIR/.gitignore"; then
-  echo "Runtime companion skill link should be ignored via .gitignore." >&2
+  echo "The runtime companion skill directory should be ignored via .gitignore." >&2
   missing=1
 fi
 
@@ -89,181 +110,98 @@ if [[ "$heartbeat_size" -gt 800 ]]; then
   missing=1
 fi
 
-if ! grep -qi 'progress' "$ROOT_DIR/AGENTS.md"; then
-  echo "AGENTS.md must define progress reporting behavior." >&2
-  missing=1
-fi
+require_text "$ROOT_DIR/AGENTS.md" 'Select `slidemax-workflow` as the primary skill' 'AGENTS.md'
+require_text "$ROOT_DIR/AGENTS.md" 'SLIDEMAX_DIR/skills/slidemax_workflow' 'AGENTS.md'
+require_text "$ROOT_DIR/AGENTS.md" 'Delivery status' 'AGENTS.md'
+require_text "$ROOT_DIR/AGENTS.md" 'scripts/check_final_delivery_gate.sh' 'AGENTS.md'
 
-for skill_file in \
-  "$ROOT_DIR/skills/presentation-workflow/SKILL.md" \
-  "$ROOT_DIR/skills/ppt-generation/SKILL.md" \
-  "$ROOT_DIR/skills/ppt-review/SKILL.md"; do
-  if ! grep -qi 'progress' "$skill_file"; then
-    echo "Skill missing progress reporting guidance: $skill_file" >&2
-    missing=1
-  fi
-done
+require_text "$ROOT_DIR/TOOLS.md" 'source OpenClaw workspace' 'TOOLS.md'
+require_text "$ROOT_DIR/TOOLS.md" 'Copy-install that canonical skill into the final OpenClaw workspace at `skills/slidemax_workflow`.' 'TOOLS.md'
+require_text "$ROOT_DIR/TOOLS.md" 'scripts/check_final_delivery_gate.sh' 'TOOLS.md'
+
+require_text "$ROOT_DIR/IDENTITY.md" 'Primary Deck Generation Skill: slidemax-workflow' 'IDENTITY.md'
+require_text "$ROOT_DIR/IDENTITY.md" 'SlideMax' 'IDENTITY.md'
 
 for required_text in \
-  'slidemax-workflow' \
-  'final-document-delivery' \
-  'message-channel-delivery' \
-  'SLIDEMAX_DIR/skills/slidemax_workflow' \
-  'Select `slidemax-workflow` as the primary skill' \
-  'Judao final document' \
-  'Delivery status' \
+  'https://github.com/funenc-lab/slidemax' \
+  'https://github.com/funenc-lab/slidemax-clawagent' \
+  'SOURCE_WORKSPACE_DIR="$REPO_DIR/agents/ppt"' \
+  'INSTALL_WORKSPACE_DIR="$HOME/.openclaw/workspace-ppt"' \
+  'INSTALL_AGENT_DIR="$HOME/.openclaw/agents/ppt/agent"' \
+  'Do not register `agents/ppt` directly as the final OpenClaw runtime workspace.' \
+  'The runtime skill must be copied into the installed workspace at `skills/slidemax_workflow/SKILL.md`.' \
+  'installed workspace path' \
+  'installed agentDir path' \
   'scripts/check_final_delivery_gate.sh' \
   'canonical runtime completion contract'; do
-  if ! grep -Fq "$required_text" "$ROOT_DIR/AGENTS.md"; then
-    echo "AGENTS.md missing required text: $required_text" >&2
-    missing=1
-  fi
+  require_text "$REPO_DIR/README.md" "$required_text" 'README.md'
 done
 
 for required_text in \
-  'AGENTS.md' \
-  'HEARTBEAT.md' \
-  'slidemax-workflow' \
-  'SLIDEMAX_DIR/skills/slidemax_workflow' \
-  'final delivery document' \
-  'scripts/check_final_delivery_gate.sh' \
-  'canonical runtime completion contract'; do
-  if ! grep -Fq "$required_text" "$ROOT_DIR/TOOLS.md"; then
-    echo "TOOLS.md missing required text: $required_text" >&2
-    missing=1
-  fi
-done
-
-for required_text in \
-  'Primary Deck Generation Skill: slidemax-workflow' \
-  'SlideMax'; do
-  if ! grep -Fq "$required_text" "$ROOT_DIR/IDENTITY.md"; then
-    echo "IDENTITY.md missing required text: $required_text" >&2
-    missing=1
-  fi
+  'SOURCE_WORKSPACE_DIR="$REPO_DIR/agents/ppt"' \
+  'INSTALL_WORKSPACE_DIR="$HOME/.openclaw/workspace-ppt"' \
+  'INSTALL_AGENT_DIR="$HOME/.openclaw/agents/ppt/agent"' \
+  'INSTALL_WORKSPACE_DIR/skills/slidemax_workflow' \
+  'Do not treat this source directory as the final installed runtime workspace.' \
+  '../../docs/openclaw-install.md'; do
+  require_text "$ROOT_DIR/README.md" "$required_text" 'Workspace README'
 done
 
 for required_text in \
   'https://github.com/funenc-lab/slidemax' \
   'https://github.com/funenc-lab/slidemax-clawagent' \
-  'SLIDEMAX_DIR/skills/slidemax_workflow' \
-  'You may start from the repository root, the workspace root, or a parent directory where the repository may need to be cloned.' \
-  'CURRENT_DIR=$(pwd)' \
-  'Repository remote is not the canonical slidemax-clawagent repository' \
-  'The repository root is `REPO_DIR`, and the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/agents/ppt"`' \
-  'Unless explicitly noted otherwise, every path in this section is relative to `WORKSPACE_DIR`.' \
-  'REPO_DIR/docs/openclaw-install.md' \
-  'skills/slidemax_workflow/SKILL.md' \
-  'skills/final-document-delivery/SKILL.md' \
-  'skills/message-channel-delivery/SKILL.md' \
-  'ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
+  'SOURCE_WORKSPACE_DIR="$REPO_DIR/agents/ppt"' \
+  'INSTALL_WORKSPACE_DIR="$HOME/.openclaw/workspace-ppt"' \
+  'INSTALL_AGENT_DIR="$HOME/.openclaw/agents/ppt/agent"' \
+  'The repository source tree is not the final OpenClaw runtime directory' \
+  'copy the source workspace into the final OpenClaw runtime workspace' \
+  'cp "$SOURCE_WORKSPACE_DIR/$managed_file" "$INSTALL_WORKSPACE_DIR/$managed_file"' \
+  'cp -R "$SOURCE_WORKSPACE_DIR/scripts" "$INSTALL_WORKSPACE_DIR/scripts"' \
+  'cp -R "$SOURCE_WORKSPACE_DIR/tests" "$INSTALL_WORKSPACE_DIR/tests"' \
+  'cp -R "$SLIDEMAX_DIR/skills/slidemax_workflow" "$INSTALL_WORKSPACE_DIR/skills/slidemax_workflow"' \
+  'INSTALL_WORKSPACE_DIR/skills/slidemax_workflow/SKILL.md' \
+  'do not mount or symlink `INSTALL_WORKSPACE_DIR/skills/slidemax_workflow`' \
   'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \
-  'openclaw agents list --json' \
-  'openclaw agents add ppt-agent --workspace' \
-  'openclaw agents delete ppt-agent' \
-  'already points to `WORKSPACE_DIR`' \
-  'points to a different workspace' \
-  'Only determine the local OpenClaw agent status when Step 6 or Step 7 is actually reached' \
-  'If the installation stops before the OpenClaw registration or verification step' \
-  'the agent should decide the next action based on the actual local OpenClaw state' \
-  'actual PPT generation'; do
-  if ! grep -Fq "$required_text" "$REPO_DIR/docs/openclaw-install.md"; then
-    echo "Install docs missing required text: $required_text" >&2
-    missing=1
-  fi
-done
-
-for forbidden_text in \
-  'scripts/install_openclaw_agent.sh' \
-  'tests/test_install_openclaw_agent.sh' \
-  'ppt-master' \
-  'PPT_MASTER_DIR' \
-  'skills/slidemax-workflow/SKILL.md'; do
-  if grep -Fqi "$forbidden_text" "$REPO_DIR/docs/openclaw-install.md"; then
-    echo "Install docs must not mention: $forbidden_text" >&2
-    missing=1
-  fi
-done
-
-for required_text in \
-  'AI Install Prompt' \
-  'raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md' \
-  'agents/ppt' \
-  'REPO_DIR/docs/openclaw-install.md' \
-  'skills/slidemax_workflow/SKILL.md' \
-  'skills/final-document-delivery/SKILL.md' \
-  'skills/message-channel-delivery/SKILL.md' \
-  'SLIDEMAX_DIR/skills/slidemax_workflow' \
   '~/.openclaw/.env' \
-  'Judao final document' \
-  'Feishu document' \
-  'Delivery status' \
-  'scripts/check_final_delivery_gate.sh' \
-  'canonical runtime completion contract'; do
-  if ! grep -Fq "$required_text" "$REPO_DIR/README.md"; then
-    echo "README.md missing required text: $required_text" >&2
-    missing=1
-  fi
+  'openclaw agents add "$AGENT_ID" --workspace "$INSTALL_WORKSPACE_DIR" --agent-dir "$INSTALL_AGENT_DIR" --non-interactive' \
+  'openclaw agents delete "$AGENT_ID"' \
+  'openclaw agents list --json' \
+  'bash scripts/validate_workspace.sh' \
+  'bash tests/test_workspace_structure.sh' \
+  'only copying managed source files' \
+  'actual OpenClaw runtime target'; do
+  require_text "$REPO_DIR/docs/openclaw-install.md" "$required_text" 'Install docs'
 done
 
 for forbidden_text in \
-  'scripts/install_openclaw_agent.sh' \
-  'tests/test_install_openclaw_agent.sh' \
-  'ppt-master' \
-  'skills/slidemax-workflow/SKILL.md'; do
-  if grep -Fqi "$forbidden_text" "$REPO_DIR/README.md"; then
-    echo "README.md must not mention: $forbidden_text" >&2
-    missing=1
-  fi
+  'Register the PPT workspace at `agents/ppt` as an OpenClaw agent workspace' \
+  'The repository root is `REPO_DIR`, and the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/agents/ppt"`' \
+  'ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
+  'workspace runtime link' \
+  'already exists and is not a symlink'; do
+  forbid_text "$REPO_DIR/docs/openclaw-install.md" "$forbidden_text" 'Install docs'
 done
 
-if ! grep -Fq 'final delivery destination' "$ROOT_DIR/skills/presentation-workflow/SKILL.md"; then
-  echo "presentation-workflow must capture the final delivery destination." >&2
-  missing=1
-fi
-
-if ! grep -Fq 'message-channel-delivery' "$ROOT_DIR/skills/presentation-workflow/SKILL.md"; then
-  echo "presentation-workflow must route channel handoff to message-channel-delivery." >&2
-  missing=1
-fi
-
-if ! grep -Fq 'delivery target and handoff status' "$ROOT_DIR/skills/ppt-generation/SKILL.md"; then
-  echo "ppt-generation must report delivery target and handoff status." >&2
-  missing=1
-fi
-
-if ! grep -Fq 'delivery status' "$ROOT_DIR/USER.md"; then
-  echo "USER.md must require delivery status in final responses." >&2
-  missing=1
-fi
-
-if ! grep -Fq 'scripts/check_final_delivery_gate.sh' "$ROOT_DIR/skills/final-document-delivery/SKILL.md"; then
-  echo "final-document-delivery must require the runtime completion gate." >&2
-  missing=1
-fi
-
-for required_text in \
-  'Feishu' \
-  'file artifact' \
-  'channel handoff status'; do
-  if ! grep -Fq "$required_text" "$ROOT_DIR/skills/message-channel-delivery/SKILL.md"; then
-    echo "message-channel-delivery skill missing required text: $required_text" >&2
-    missing=1
-  fi
+for forbidden_text in \
+  'Register `agents/ppt`, not the repository root, as the OpenClaw workspace.' \
+  'The runtime skill must appear in the workspace at `skills/slidemax_workflow/SKILL.md`.'; do
+  forbid_text "$REPO_DIR/README.md" "$forbidden_text" 'README.md'
 done
 
-for required_text in \
-  '--verification-evidence' \
-  '--local-only-approval-evidence' \
-  '--attempted-delivery'; do
-  if ! grep -Fq -- "$required_text" "$ROOT_DIR/scripts/check_final_delivery_gate.sh" "$REPO_DIR/README.md"; then
-    echo "Completion gate contract missing required text: $required_text" >&2
-    missing=1
-  fi
-done
+require_text "$ROOT_DIR/skills/presentation-workflow/SKILL.md" 'final delivery destination' 'presentation-workflow'
+require_text "$ROOT_DIR/skills/presentation-workflow/SKILL.md" 'message-channel-delivery' 'presentation-workflow'
+require_text "$ROOT_DIR/skills/ppt-generation/SKILL.md" 'delivery target and handoff status' 'ppt-generation'
+require_text "$ROOT_DIR/USER.md" 'delivery status' 'USER.md'
+require_text "$ROOT_DIR/skills/final-document-delivery/SKILL.md" 'scripts/check_final_delivery_gate.sh' 'final-document-delivery'
+require_text "$ROOT_DIR/skills/message-channel-delivery/SKILL.md" 'Feishu' 'message-channel-delivery'
+require_text "$ROOT_DIR/skills/message-channel-delivery/SKILL.md" 'file artifact' 'message-channel-delivery'
+require_text "$ROOT_DIR/skills/message-channel-delivery/SKILL.md" 'channel handoff status' 'message-channel-delivery'
+require_text "$ROOT_DIR/scripts/check_final_delivery_gate.sh" '--verification-evidence' 'check_final_delivery_gate.sh'
+require_text "$ROOT_DIR/scripts/check_final_delivery_gate.sh" '--local-only-approval-evidence' 'check_final_delivery_gate.sh'
+require_text "$ROOT_DIR/scripts/check_final_delivery_gate.sh" '--attempted-delivery' 'check_final_delivery_gate.sh'
 
 if [[ "$missing" -ne 0 ]]; then
   exit 1
 fi
 
-echo "Workspace validation passed."
+echo 'Workspace validation passed.'

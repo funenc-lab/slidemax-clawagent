@@ -109,7 +109,7 @@ For any task that requires an actual PPT, PPTX, SVG, or generated deck artifact,
 
 - The SlideMax companion repository must be installed locally.
 - The canonical runtime skill must be available from `SLIDEMAX_DIR/skills/slidemax_workflow`.
-- The workspace runtime link must exist at `skills/slidemax_workflow`.
+- The installed runtime skill copy must exist at `skills/slidemax_workflow`.
 - If any of these prerequisites are missing, actual PPT generation is blocked.
 - In that blocked state, continue only with non-rendered deliverables such as outlines, reviews, notes, or delivery planning.
 
@@ -297,7 +297,7 @@ Required behavior:
 
 - Select `slidemax-workflow` as the primary skill when the user asks for an actual PPT, PPTX, SVG, or generated deck artifact.
 - Treat SlideMax and `slidemax-workflow` as mandatory prerequisites for actual PPT artifact generation.
-- Install the canonical `slidemax-workflow` skill from `SLIDEMAX_DIR/skills/slidemax_workflow` into `skills/slidemax_workflow` before trying to use it in this workspace.
+- Copy-install the canonical `slidemax-workflow` skill from `SLIDEMAX_DIR/skills/slidemax_workflow` into `skills/slidemax_workflow` before trying to use it in this workspace.
 - Acquire and install the canonical skill during the installation flow; do not rely on a local bridge skill for runtime routing.
 - Use `presentation-workflow` and `ppt-generation` as supporting skills only when `slidemax-workflow` needs narrative structure, slide blueprints, or clarified inputs before generation.
 - Use `ppt-review`, `speaker-notes`, and `deck-polish` to improve content quality before or after generation when needed.
