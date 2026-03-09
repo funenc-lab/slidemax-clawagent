@@ -26,10 +26,10 @@ Do not turn this into a second `AGENTS.md`.
 
 ## Local Runtime Notes
 
-- This directory is the OpenClaw workspace, not the SlideMax companion application.
+- This repository is the OpenClaw workspace, not the SlideMax companion application.
 - The companion SlideMax repository provides the runtime deck generation workflow.
 - The canonical generation skill must come from `SLIDEMAX_DIR/skills/slidemax_workflow`.
-- Copy-install that canonical skill into this workspace at `skills/slidemax_workflow`.
+- Install that canonical skill into this workspace at `skills/slidemax_workflow`.
 - Install the canonical skill during the installation flow instead of routing through a local bridge skill.
 
 ## Slide Generation Notes
