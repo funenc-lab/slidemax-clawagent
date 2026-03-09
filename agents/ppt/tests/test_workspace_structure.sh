@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+REPO_DIR=$(cd "$ROOT_DIR/../.." && pwd)
 
 required_files=(
   "AGENTS.md"
@@ -17,8 +18,8 @@ required_files=(
   "skills/ppt-review/SKILL.md"
   "skills/speaker-notes/SKILL.md"
   "skills/deck-polish/SKILL.md"
-  "skills/slidemax-bridge/SKILL.md"
   "skills/final-document-delivery/SKILL.md"
+  "skills/message-channel-delivery/SKILL.md"
   "scripts/check_final_delivery_gate.sh"
   "docs/openclaw-install.md"
   "tests/test_final_delivery_gate.sh"
@@ -30,6 +31,42 @@ for relative_path in "${required_files[@]}"; do
     exit 1
   fi
 done
+
+if [[ "$(basename "$ROOT_DIR")" != "ppt" || "$(basename "$(dirname "$ROOT_DIR")")" != "agents" ]]; then
+  echo 'Workspace root must live under agents/ppt.' >&2
+  exit 1
+fi
+
+for forbidden_repo_path in \
+  '.openclaw' \
+  'AGENTS.md' \
+  'BOOTSTRAP.md' \
+  'HEARTBEAT.md' \
+  'IDENTITY.md' \
+  'SOUL.md' \
+  'TOOLS.md' \
+  'USER.md' \
+  'docs' \
+  'scripts' \
+  'skills' \
+  'tests'; do
+  if [[ -e "$REPO_DIR/$forbidden_repo_path" ]]; then
+    echo "Repository root should not contain workspace path: $forbidden_repo_path" >&2
+    exit 1
+  fi
+done
+
+for required_repo_path in 'README.md' '.gitignore'; do
+  if [[ ! -e "$REPO_DIR/$required_repo_path" ]]; then
+    echo "Repository root missing required file: $required_repo_path" >&2
+    exit 1
+  fi
+done
+
+if [[ -e "$ROOT_DIR/skills/slidemax-bridge" ]]; then
+  echo 'skills/slidemax-bridge should not exist; SlideMax must be acquired during installation.' >&2
+  exit 1
+fi
 
 if [[ -f "$ROOT_DIR/scripts/install_openclaw_agent.sh" ]]; then
   echo 'Install helper script should not exist anymore.' >&2
@@ -57,7 +94,7 @@ if [[ "$heartbeat_size" -gt 800 ]]; then
   exit 1
 fi
 
-for skill_name in 'presentation-workflow' 'ppt-generation' 'ppt-review' 'speaker-notes' 'deck-polish' 'slidemax-workflow' 'slidemax-bridge' 'final-document-delivery'; do
+for skill_name in 'presentation-workflow' 'ppt-generation' 'ppt-review' 'speaker-notes' 'deck-polish' 'slidemax-workflow' 'final-document-delivery' 'message-channel-delivery'; do
   if ! grep -Fq "$skill_name" "$ROOT_DIR/AGENTS.md"; then
     echo "AGENTS.md must reference skill: $skill_name" >&2
     exit 1
@@ -67,7 +104,6 @@ done
 for required_text in \
   'Select `slidemax-workflow` as the primary skill' \
   'SLIDEMAX_DIR/skills/slidemax_workflow' \
-  'skills/slidemax-bridge/SKILL.md' \
   'Judao final document' \
   'Delivery status' \
   'scripts/check_final_delivery_gate.sh' \
@@ -79,12 +115,13 @@ for required_text in \
 done
 
 for required_text in \
-  'skills/slidemax-bridge/SKILL.md' \
   'skills/slidemax_workflow/SKILL.md' \
   'skills/final-document-delivery/SKILL.md' \
+  'skills/message-channel-delivery/SKILL.md' \
   'SLIDEMAX_DIR/skills/slidemax_workflow' \
   'ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
   'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \
+  'agents/ppt' \
   'Judao final document' \
   'Feishu document' \
   'Delivery status' \
@@ -105,19 +142,13 @@ for forbidden_text in \
   fi
 done
 
-for required_text in \
-  'name: slidemax-bridge' \
-  'SLIDEMAX_DIR/skills/slidemax_workflow' \
-  'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR'; do
-  if ! grep -Fq "$required_text" "$ROOT_DIR/skills/slidemax-bridge/SKILL.md"; then
-    echo "slidemax-bridge skill missing required text: $required_text" >&2
-    exit 1
-  fi
-done
-
-
 if ! grep -Fq 'final delivery destination' "$ROOT_DIR/skills/presentation-workflow/SKILL.md"; then
   echo 'presentation-workflow must capture the final delivery destination.' >&2
+  exit 1
+fi
+
+if ! grep -Fq 'message-channel-delivery' "$ROOT_DIR/skills/presentation-workflow/SKILL.md"; then
+  echo 'presentation-workflow must route channel handoff to message-channel-delivery.' >&2
   exit 1
 fi
 
@@ -135,6 +166,16 @@ if ! grep -Fq 'scripts/check_final_delivery_gate.sh' "$ROOT_DIR/skills/final-doc
   echo 'final-document-delivery must require the runtime completion gate.' >&2
   exit 1
 fi
+
+for required_text in \
+  'Feishu' \
+  'file artifact' \
+  'channel handoff status'; do
+  if ! grep -Fq "$required_text" "$ROOT_DIR/skills/message-channel-delivery/SKILL.md"; then
+    echo "message-channel-delivery skill missing required text: $required_text" >&2
+    exit 1
+  fi
+done
 
 for required_text in \
   '--verification-evidence' \

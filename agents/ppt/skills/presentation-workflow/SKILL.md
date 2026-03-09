@@ -38,6 +38,20 @@ Use when the structure is mostly correct but the wording, flow, or emphasis is w
 
 Use when notes, documents, meeting records, or plans must become presentation material.
 
+## Routing Rules
+
+Use this skill as the entry router, then hand work off deliberately:
+
+- hand off to `ppt-generation` when a new deck blueprint must be created from raw input
+- hand off to `ppt-review` when the main need is critique, scoring, or prioritized fixes
+- hand off to `speaker-notes` when the main need is spoken delivery, transitions, or likely Q&A
+- hand off to `deck-polish` when the structure is mostly right and the wording needs executive tightening
+- hand off to `slidemax-workflow` when an actual PPT, PPTX, SVG, or rendered deck artifact is required
+- hand off to `final-document-delivery` after the artifact exists and must reach a final document destination
+- hand off to `message-channel-delivery` only after final document delivery when chat, group, or channel handoff is requested
+
+Do not keep work in this skill when a specialist skill is the clearer owner.
+
 ## Progress Reporting
 
 For multi-step presentation work, report progress after each major stage.

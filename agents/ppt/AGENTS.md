@@ -96,12 +96,22 @@ Skills provide your tools. When you need one, check its `SKILL.md`. Keep local t
 
 - Use browsing or browser-capable tools for official documentation, current facts, citations, competitor scans, and visual verification.
 - Use filesystem and editing tools for reusable local artifacts such as outlines, notes, reviews, scripts, and delivery packages.
-- Use browser, document, or channel-capable tools together with `final-document-delivery` when the final artifact must reach a final delivery document or approved external destination.
+- Use browser, document, or channel-capable tools together with `final-document-delivery` and `message-channel-delivery` when the final artifact must reach a final document destination or an approved message channel.
 - Validate important outputs before claiming completion.
 
 ## Mission
 
 This workspace specializes in presentation strategy, slide authoring, slide review, speaker notes, and delivery coaching.
+
+## PPT Development Prerequisite
+
+For any task that requires an actual PPT, PPTX, SVG, or generated deck artifact, treat SlideMax and the canonical `slidemax-workflow` skill as prerequisites rather than optional enhancements.
+
+- The SlideMax companion repository must be installed locally.
+- The canonical runtime skill must be available from `SLIDEMAX_DIR/skills/slidemax_workflow`.
+- The workspace runtime link must exist at `skills/slidemax_workflow`.
+- If any of these prerequisites are missing, actual PPT generation is blocked.
+- In that blocked state, continue only with non-rendered deliverables such as outlines, reviews, notes, or delivery planning.
 
 ## Default Language
 
@@ -129,48 +139,55 @@ Keep code, scripts, JSON, XML, shell commands, and other machine-readable artifa
 Use this process for non-trivial PPT work from intake to external delivery:
 
 1. Startup: load `SOUL.md`, `USER.md`, recent memory, and the workspace contracts.
-2. Intake: identify audience, objective, decision, time limit, format, and destination.
-3. Gap check: ask only for missing information that would materially change the output.
-4. Evidence collection: gather user-provided facts, approved sources, and existing deck materials.
-5. Narrative design: build the narrative spine before slide-level drafting.
-6. Slide design: create the slide-by-slide outline, key messages, proof points, and visual intent.
-7. Review and polish: tighten headlines, density, transitions, notes, and the final ask.
-8. Artifact naming: choose the final output path and a deterministic English-only filename before generation.
-9. Artifact generation: if an actual deck artifact is required, prepare SlideMax-ready input and generate the asset.
-10. Delivery: send the final artifact to the requested final document destination and then to the requested message channel when explicitly required.
-11. Verification: run the final delivery gate, confirm the result, and report the artifact path, filename, final destination, channel status, and blockers if any.
+2. Preflight: if an actual PPT artifact is required, verify SlideMax and `slidemax-workflow` are available before continuing.
+3. Intake: identify audience, objective, decision, time limit, format, and destination.
+4. Gap check: ask only for missing information that would materially change the output.
+5. Evidence collection: gather user-provided facts, approved sources, and existing deck materials.
+6. Narrative design: build the narrative spine before slide-level drafting.
+7. Slide design: create the slide-by-slide outline, key messages, proof points, and visual intent.
+8. Review and polish: tighten headlines, density, transitions, notes, and the final ask.
+9. Artifact naming: choose the final output path and a deterministic English-only filename before generation.
+10. Artifact generation: if an actual deck artifact is required, prepare SlideMax-ready input and generate the asset.
+11. Delivery: send the final artifact to the requested final document destination and then to the requested message channel when explicitly required.
+12. Verification: run the final delivery gate, confirm the result, and report the artifact path, filename, final destination, channel status, and blockers if any.
 
 ## PPT Delivery Flowchart
 
 ```mermaid
 flowchart TD
   A[Request received] --> B[Session startup]
-  B --> C[Intake audience objective decision deadline destination]
-  C --> D{Enough input?}
-  D -- No --> D1[Ask for the smallest missing input]
-  D1 --> C
-  D -- Yes --> E[Collect evidence and source material]
-  E --> F[Build narrative spine]
-  F --> G[Draft slide-by-slide outline]
-  G --> H[Add speaker notes review points and final ask]
-  H --> I[Choose output folder and deterministic filename]
-  I --> J{Actual PPT/PPTX/SVG artifact requested?}
-  J -- No --> K[Prepare reusable local artifact package]
-  J -- Yes --> L[Prepare SlideMax-ready input]
-  L --> M[Use slidemax-workflow to generate artifact]
-  M --> N[Validate artifact quality completeness and filename]
-  K --> O{Final delivery destination specified?}
-  N --> O
-  O -- No --> O1[Ask for final delivery destination]
-  O1 --> O
-  O -- Yes --> P[Deliver artifact to final document destination]
-  P --> Q{Message channel delivery requested?}
-  Q -- No --> U[Run final delivery gate]
-  Q -- Yes --> R{Channel type}
-  R -- Feishu --> S[Upload the artifact file to the Feishu channel with concise status]
-  R -- Other --> T[Send the artifact or verified final link with concise status]
-  S --> U
-  T --> U
+  B --> C{Actual PPT/PPTX/SVG artifact requested?}
+  C -- Yes --> D[Verify SlideMax companion repo and slidemax-workflow skill]
+  D --> E{Prerequisites available?}
+  E -- No --> E1[Block artifact generation and switch to outline review notes or plan]
+  E1 --> V
+  E -- Yes --> F[Intake audience objective decision deadline destination]
+  C -- No --> F
+  F --> G{Enough input?}
+  G -- No --> G1[Ask for the smallest missing input]
+  G1 --> F
+  G -- Yes --> H[Collect evidence and source material]
+  H --> I[Build narrative spine]
+  I --> J[Draft slide-by-slide outline]
+  J --> K[Add speaker notes review points and final ask]
+  K --> L[Choose output folder and deterministic filename]
+  L --> M{Actual PPT/PPTX/SVG artifact requested?}
+  M -- No --> N[Prepare reusable local artifact package]
+  M -- Yes --> O[Prepare SlideMax-ready input]
+  O --> P[Use slidemax-workflow to generate artifact]
+  P --> Q[Validate artifact quality completeness and filename]
+  N --> R{Final delivery destination specified?}
+  Q --> R
+  R -- No --> R1[Ask for final delivery destination]
+  R1 --> R
+  R -- Yes --> S[Deliver artifact to final document destination]
+  S --> T{Message channel delivery requested?}
+  T -- No --> U[Run final delivery gate]
+  T -- Yes --> T1{Channel type}
+  T1 -- Feishu --> T2[Upload the artifact file to the Feishu channel with concise status]
+  T1 -- Other --> T3[Send the artifact or verified final link with concise status]
+  T2 --> U
+  T3 --> U
   U --> V[Report artifact path filename destination Delivery status and blockers]
 ```
 
@@ -241,7 +258,7 @@ Delivery destination rules:
 
 ## Output Directory Convention
 
-When the agent writes reusable local artifacts, use the repository-root `outputs/` directory unless the user explicitly requests another path.
+When the agent writes reusable local artifacts, use the workspace-root `outputs/` directory unless the user explicitly requests another path.
 
 Preferred layout:
 
@@ -258,7 +275,7 @@ Naming rules:
 - Prefer artifact file names such as `YYYY-MM-DD-topic-slug.pptx`, `YYYY-MM-DD-topic-slug.pdf`, or `YYYY-MM-DD-topic-slug-v2.pptx`.
 - Use one clearly designated primary artifact filename for every delivery handoff.
 - Keep all files for one task in the same task folder.
-- Do not write generated deliverables to the repository root unless the user explicitly asks for it.
+- Do not write generated deliverables to the workspace root unless the user explicitly asks for it.
 
 ## Review Standards
 
@@ -279,11 +296,13 @@ When the task requires actual slide artifacts instead of only outlines or copy, 
 Required behavior:
 
 - Select `slidemax-workflow` as the primary skill when the user asks for an actual PPT, PPTX, SVG, or generated deck artifact.
+- Treat SlideMax and `slidemax-workflow` as mandatory prerequisites for actual PPT artifact generation.
 - Install the canonical `slidemax-workflow` skill from `SLIDEMAX_DIR/skills/slidemax_workflow` into `skills/slidemax_workflow` before trying to use it in this workspace.
-- Use the local `slidemax-bridge` skill only to install, repair, or verify that companion workflow skill.
+- Acquire and install the canonical skill during the installation flow; do not rely on a local bridge skill for runtime routing.
 - Use `presentation-workflow` and `ppt-generation` as supporting skills only when `slidemax-workflow` needs narrative structure, slide blueprints, or clarified inputs before generation.
 - Use `ppt-review`, `speaker-notes`, and `deck-polish` to improve content quality before or after generation when needed.
 - Use `final-document-delivery` after artifact generation when the result must reach a Judao final document, Feishu document, or another final destination.
+- Use `message-channel-delivery` after final document delivery when the result must also be handed off to a message channel such as a Feishu chat or group.
 - Treat the companion SlideMax repository workflow as the execution layer for slide generation rather than a passive dependency.
 - If SlideMax is not installed locally, state that actual PPT generation is blocked and fall back to outline, review, or notes work only.
 
@@ -292,15 +311,15 @@ Required behavior:
 Use these skills by task type:
 
 - `slidemax-workflow`: primary skill for actual PPT, PPTX, SVG, and generated deck artifact output, installed from the SlideMax companion repository
-- `slidemax-bridge`: local bridge skill for installing or repairing `skills/slidemax_workflow` in this workspace
 - `final-document-delivery`: final delivery skill for sending finished artifacts to a Judao final document, Feishu document, or another final destination
+- `message-channel-delivery`: message handoff skill for sending the final artifact or verified final link to a requested chat, group, or channel; Feishu requires file upload when file delivery is expected
 - `presentation-workflow`: broad orchestration for creation, review, rewrite, and conversion tasks, and a supporting skill for SlideMax-ready input preparation
 - `ppt-generation`: generate a new deck blueprint from raw business or technical inputs when SlideMax needs structured content
 - `ppt-review`: critique deck content and return prioritized improvements
 - `speaker-notes`: create talk tracks, transitions, and likely Q&A support
 - `deck-polish`: tighten wording, improve executive readability, and reduce clutter
 
-If the user explicitly requests an actual deck artifact, prefer `slidemax-workflow` first, then use `final-document-delivery` for the final destination, and call `slidemax-bridge`, `presentation-workflow`, or `ppt-generation` only as needed. Otherwise prefer `presentation-workflow` first and then one or more specialized skills.
+If the user explicitly requests an actual deck artifact, prefer `slidemax-workflow` first, then use `final-document-delivery` for the final destination, then `message-channel-delivery` for any requested channel handoff, and call `presentation-workflow` or `ppt-generation` only as needed. Otherwise prefer `presentation-workflow` first and then one or more specialized skills.
 
 ## Heartbeats - Be Proactive!
 

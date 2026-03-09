@@ -16,7 +16,6 @@ Key facts:
 - The agent uses the installed SlideMax repository as the canonical workflow skill backend for actual PPT generation
 - The canonical workflow skill file is `SLIDEMAX_DIR/skills/slidemax_workflow/SKILL.md`
 - During installation, that companion skill must be installed into this workspace at `WORKSPACE_DIR/skills/slidemax_workflow`
-- `skills/slidemax-bridge/SKILL.md` in this repository is only a local bridge skill and is not the canonical `slidemax-workflow` implementation
 - This repository contains the OpenClaw workspace, not the SlideMax companion application itself
 - This runbook does not rely on an install helper script
 - The AI should determine the local OpenClaw action directly from the observed local state
@@ -48,7 +47,6 @@ The following facts are confirmed from the current repository and the companion 
 - The canonical GitHub repository for the companion project is `funenc-lab/slidemax`
 - The companion repository contains the workflow and commands used by the agent to generate PPT artifacts
 - The companion repository must contain `skills/slidemax_workflow/SKILL.md` before installation can continue
-- The workspace bridge skill files under `skills/` must be present before registration
 
 ### Assumptions
 
@@ -93,7 +91,7 @@ The installation is considered complete only when all of the following are true:
 
 ## Output Directory Convention
 
-Unless the user explicitly requests another location, generated reusable artifacts should be written under the repository-root `outputs/` directory.
+Unless the user explicitly requests another location, generated reusable artifacts should be written under the workspace-root `outputs/` directory.
 
 Recommended structure:
 
@@ -113,7 +111,7 @@ Naming rules:
 - use English-only file and directory names
 - prefer lowercase kebab-case names
 - keep each task in its own `YYYY-MM-DD-topic-slug` directory
-- do not write generated deliverables to the repository root unless the user explicitly asks for that
+- do not write generated deliverables to the workspace root unless the user explicitly asks for that
 - do not write generated deliverables into `docs/`, `scripts/`, or `skills/` unless the task itself is a documentation or code change
 
 Version-control rules:
@@ -139,24 +137,26 @@ outputs/
 
 ## AI Execution Order
 
-### Step 0: Acquire and Verify the Workspace Repository Root
+### Step 0: Acquire and Verify the Repository Root and Workspace Root
 
-The exact workspace path must be the absolute path of the local `slidemax-clawagent` repository root.
+Treat the exact repository path as the absolute path of the local `slidemax-clawagent` repository root.
+Treat the exact workspace path as the absolute path of the local `slidemax-clawagent` repository root plus `/agents/ppt`.
 Do not treat an arbitrary current directory as the workspace path.
 
-If the workspace repository is missing locally, clone it first and enter its repository root before doing anything else:
+If the workspace repository is missing locally, clone it first and then enter the workspace root before doing anything else:
 
 ```bash
-WORKSPACE_PARENT=$(pwd)
-WORKSPACE_DIR="${WORKSPACE_PARENT}/slidemax-clawagent"
+REPO_PARENT=$(pwd)
+REPO_DIR="${REPO_PARENT}/slidemax-clawagent"
+WORKSPACE_DIR="${REPO_DIR}/agents/ppt"
 
-if [ -d "$WORKSPACE_DIR/.git" ]; then
-  git -C "$WORKSPACE_DIR" remote get-url origin
-elif [ -e "$WORKSPACE_DIR" ]; then
-  echo "Target workspace path exists but is not a Git repository: $WORKSPACE_DIR" >&2
+if [ -d "$REPO_DIR/.git" ]; then
+  git -C "$REPO_DIR" remote get-url origin
+elif [ -e "$REPO_DIR" ]; then
+  echo "Target repository path exists but is not a Git repository: $REPO_DIR" >&2
   exit 1
 else
-  git clone https://github.com/funenc-lab/slidemax-clawagent.git "$WORKSPACE_DIR"
+  git clone https://github.com/funenc-lab/slidemax-clawagent.git "$REPO_DIR"
 fi
 
 cd "$WORKSPACE_DIR"
@@ -167,22 +167,24 @@ test -f ./tests/test_workspace_structure.sh
 Rules:
 
 - if the workspace repository does not exist locally, clone `https://github.com/funenc-lab/slidemax-clawagent.git`
-- if the target path exists but is not a Git repository, stop and report the conflict
+- if the target repository path exists but is not a Git repository, stop and report the conflict
 - if `./scripts/validate_workspace.sh` is missing, stop immediately
 - if `./tests/test_workspace_structure.sh` is missing, stop immediately
 
 Then report:
 
+- the exact repository path
 - the exact workspace path
-- that the current shell is now inside the workspace repository root
+- that the current shell is now inside the workspace root
 
 ### Step 1: Resolve Paths
 
-After entering the workspace repository root, compute the local paths:
+After entering the workspace root, compute the local paths:
 
 ```bash
 WORKSPACE_DIR=$(pwd)
-PARENT_DIR=$(dirname "$WORKSPACE_DIR")
+REPO_DIR=$(cd "$WORKSPACE_DIR/../.." && pwd)
+PARENT_DIR=$(dirname "$REPO_DIR")
 SLIDEMAX_DIR="${PARENT_DIR}/slidemax"
 WORKSPACE_SLIDEMAX_SKILL_DIR="$WORKSPACE_DIR/skills/slidemax_workflow"
 SLIDEMAX_WORKFLOW_SOURCE_DIR="$SLIDEMAX_DIR/skills/slidemax_workflow"
@@ -190,6 +192,7 @@ SLIDEMAX_WORKFLOW_SOURCE_DIR="$SLIDEMAX_DIR/skills/slidemax_workflow"
 
 Then report:
 
+- the exact repository path
 - the exact workspace path
 - the chosen SlideMax companion repository path
 
@@ -341,11 +344,10 @@ Rules:
 
 - the runtime `slidemax-workflow` skill must come from `SLIDEMAX_DIR/skills/slidemax_workflow`, not from a hand-written local replacement
 - install that canonical companion skill into `WORKSPACE_DIR/skills/slidemax_workflow` before agent registration
-- the local `skills/slidemax-bridge/SKILL.md` file is only a bridge skill and must not be treated as the canonical generation workflow
 - if the workspace skill target exists and is not a symlink, stop and report the conflict
 - if either validation command fails, do not continue to agent registration
 
-These validation steps are also the guardrail for workspace-specific bridge skills and the installed companion workflow: if they fail, the agent must not be registered because the local skill surface is not trusted as complete.
+These validation steps are also the guardrail for the dynamically installed companion workflow: if they fail, the agent must not be registered because the local skill surface is not trusted as complete.
 
 ### Step 6: Determine and Apply the Local OpenClaw Action
 
@@ -472,10 +474,11 @@ Notes:
 
 ### Skill Files
 
-These files are workspace-specific bridge skills made available to the agent by registering this workspace.
+These files are workspace-specific skills made available to the agent by registering this workspace.
 The canonical runtime `slidemax-workflow` skill is installed from the companion repository into `skills/slidemax_workflow` during Step 5.
 The local `skills/final-document-delivery/SKILL.md` skill handles the final publish or send step after artifact generation.
-If any required bridge file is missing, do not register or reuse the workspace until validation passes.
+The local `skills/message-channel-delivery/SKILL.md` skill handles the final channel handoff after final document delivery when chat or group delivery is requested.
+If any required workspace skill file is missing, do not register or reuse the workspace until validation passes.
 
 - `skills/presentation-workflow/SKILL.md`
   - the workflow entry point for creation, review, rewrite, and conversion tasks
@@ -498,9 +501,9 @@ If any required bridge file is missing, do not register or reuse the workspace u
 - `skills/deck-polish/SKILL.md`
   - tightens wording, sharpens titles, and improves executive readability
 
-- `skills/slidemax-bridge/SKILL.md`
-  - installs or repairs the canonical companion skill from `SLIDEMAX_DIR/skills/slidemax_workflow` into this workspace
-  - verifies that the runtime `slidemax-workflow` skill can be used safely
+- `skills/message-channel-delivery/SKILL.md`
+  - sends the final artifact or verified final link to a requested chat, group, or message channel after final document delivery
+  - uploads the file artifact for Feishu channel delivery when file handoff is expected
 
 - `skills/slidemax_workflow/SKILL.md`
   - runtime-installed canonical SlideMax workflow skill sourced from the companion repository

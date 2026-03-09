@@ -30,6 +30,7 @@ Do not use this skill when:
 - the user explicitly requested a local-only draft
 - the task is still at the outline or blueprint stage and the final artifact does not exist yet
 - the destination document is intentionally deferred by the user
+- the task is only about chat, group, or message channel handoff after final document delivery; use `message-channel-delivery` for that step
 
 ## Inputs To Confirm
 

@@ -30,12 +30,13 @@ Do not turn this into a second `AGENTS.md`.
 - The companion SlideMax repository provides the runtime deck generation workflow.
 - The canonical generation skill must come from `SLIDEMAX_DIR/skills/slidemax_workflow`.
 - Install that canonical skill into this workspace at `skills/slidemax_workflow`.
-- Use `skills/slidemax-bridge/SKILL.md` only to install, repair, or verify the runtime link.
+- Install the canonical skill during the installation flow instead of routing through a local bridge skill.
 
 ## Slide Generation Notes
 
 When the requested output is an actual PPT, PPTX, SVG, or generated deck artifact:
 
+- Treat SlideMax and `slidemax-workflow` as prerequisites, not optional helpers.
 - Use `slidemax-workflow` as the primary skill.
 - Use `presentation-workflow` or `ppt-generation` only as supporting preparation steps when `slidemax-workflow` needs structured input.
 - If SlideMax is unavailable locally, report that artifact generation is blocked and continue with non-rendered deliverables only.
@@ -45,7 +46,8 @@ When the requested output is an actual PPT, PPTX, SVG, or generated deck artifac
 When a final artifact must reach an external destination:
 
 - Use `final-document-delivery` for a Judao final document, Feishu document, or another final delivery document.
-- Treat repository `outputs/` paths as staging only unless the user explicitly asked for a local-only result.
+- Use `message-channel-delivery` when the user also requests a chat, group, or channel handoff after final delivery.
+- Treat workspace-root `outputs/` paths as staging only unless the user explicitly asked for a local-only result.
 - Do not treat a local artifact as complete delivery when the requested final destination has not been updated.
 - If the user explicitly requests a message channel delivery, perform that handoff only after the final artifact exists and the destination is explicit.
 - If the requested channel is Feishu, upload the file artifact when file delivery is expected.
