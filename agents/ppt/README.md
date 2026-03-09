@@ -11,7 +11,7 @@ Path contract:
 
 - repository root: `REPO_DIR`
 - workspace root: `REPO_DIR/workspace-ppt`
-- agent directory: `REPO_DIR/agents/ppt`
+- agent directory: `REPO_DIR/agents/ppt` as the OpenClaw `agentDir`
 
 Do not register this directory itself as the OpenClaw workspace.
-Register `REPO_DIR/workspace-ppt` instead.
+Register `REPO_DIR/workspace-ppt` as `--workspace` and this directory as `--agent-dir`.

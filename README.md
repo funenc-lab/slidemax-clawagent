@@ -27,9 +27,9 @@ This repository is not the SlideMax companion application and it is not the Open
 
 - Treat the repository root as `REPO_DIR`.
 - Treat the PPT workspace root as `WORKSPACE_DIR="$REPO_DIR/workspace-ppt"`.
-- Treat the PPT agent data root as `AGENT_DIR="$REPO_DIR/agents/ppt"`.
+- Treat the PPT agent data root as `AGENT_DIR="$REPO_DIR/agents/ppt"`, which is the OpenClaw `agentDir` for this agent.
 - Use `REPO_DIR/docs/openclaw-install.md` as the project installation and update prompt file.
-- Register `workspace-ppt`, not the repository root or `agents/ppt`, as the OpenClaw workspace.
+- Register `workspace-ppt` as the OpenClaw workspace and `agents/ppt` as the OpenClaw `agentDir`.
 - Install the SlideMax companion repository before registering the workspace with OpenClaw.
 - The runtime companion workflow is sourced from `SLIDEMAX_DIR/skills/slidemax_workflow`.
 - The runtime skill must be copied and installed into the workspace at `skills/slidemax_workflow/SKILL.md`.

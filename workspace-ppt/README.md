@@ -12,7 +12,7 @@ Path contract:
 
 - repository root: `REPO_DIR`
 - workspace root: `WORKSPACE_DIR="$REPO_DIR/workspace-ppt"`
-- agent directory: `AGENT_DIR="$REPO_DIR/agents/ppt"`
+- agent directory: `AGENT_DIR="$REPO_DIR/agents/ppt"` as the OpenClaw `agentDir`
 - repository install runbook: `REPO_DIR/docs/openclaw-install.md`
 
 Use this directory as the `--workspace` target when registering the OpenClaw agent.

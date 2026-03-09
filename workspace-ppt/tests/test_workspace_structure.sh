@@ -132,13 +132,14 @@ for required_text in \
   'You may start from the repository root, the workspace root, or a parent directory where the repository may need to be cloned.' \
   'CURRENT_DIR=$(pwd)' \
   'Repository remote is not the canonical slidemax-clawagent repository' \
-  'The repository root is `REPO_DIR`, the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/workspace-ppt"`, and the agent data root is `AGENT_DIR="$REPO_DIR/agents/ppt"`' \
+  'The repository root is `REPO_DIR`, the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/workspace-ppt"`, and the OpenClaw `agentDir` root is `AGENT_DIR="$REPO_DIR/agents/ppt"`' \
   'Unless explicitly noted otherwise, every path in this section is relative to `WORKSPACE_DIR`.' \
   'AGENT_DIR="$REPO_DIR/agents/ppt"' \
   'REPO_DIR/docs/openclaw-install.md' \
   'rm -rf "$WORKSPACE_DIR/skills/slidemax_workflow"' \
   'cp -R "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
   'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \
+  'openclaw agents add ppt-agent --workspace "$WORKSPACE_DIR" --agent-dir "$AGENT_DIR" --non-interactive' \
   'workspace-ppt' \
   'agents/ppt' \
   'Judao final document' \
