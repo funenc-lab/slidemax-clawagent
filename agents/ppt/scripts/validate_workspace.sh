@@ -5,7 +5,6 @@ ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 REPO_DIR=$(cd "$ROOT_DIR/../.." && pwd)
 
 required_files=(
-  "README.md"
   "AGENTS.md"
   "SOUL.md"
   "TOOLS.md"
@@ -148,6 +147,12 @@ for required_text in \
   'https://github.com/funenc-lab/slidemax' \
   'https://github.com/funenc-lab/slidemax-clawagent' \
   'SLIDEMAX_DIR/skills/slidemax_workflow' \
+  'You may start from the repository root, the workspace root, or a parent directory where the repository may need to be cloned.' \
+  'CURRENT_DIR=$(pwd)' \
+  'Repository remote is not the canonical slidemax-clawagent repository' \
+  'The repository root is `REPO_DIR`, and the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/agents/ppt"`' \
+  'Unless explicitly noted otherwise, every path in this section is relative to `WORKSPACE_DIR`.' \
+  'REPO_DIR/docs/openclaw-install.md' \
   'skills/slidemax_workflow/SKILL.md' \
   'skills/final-document-delivery/SKILL.md' \
   'skills/message-channel-delivery/SKILL.md' \
@@ -184,21 +189,18 @@ for required_text in \
   'AI Install Prompt' \
   'raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md' \
   'agents/ppt' \
-  'slidemax-clawagent repository root' \
-  'clone it first' \
+  'REPO_DIR/docs/openclaw-install.md' \
   'skills/slidemax_workflow/SKILL.md' \
   'skills/final-document-delivery/SKILL.md' \
   'skills/message-channel-delivery/SKILL.md' \
   'SLIDEMAX_DIR/skills/slidemax_workflow' \
-  'ln -s "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
-  'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \
   '~/.openclaw/.env' \
   'Judao final document' \
   'Feishu document' \
   'Delivery status' \
   'scripts/check_final_delivery_gate.sh' \
   'canonical runtime completion contract'; do
-  if ! grep -Fq "$required_text" "$ROOT_DIR/README.md"; then
+  if ! grep -Fq "$required_text" "$REPO_DIR/README.md"; then
     echo "README.md missing required text: $required_text" >&2
     missing=1
   fi
@@ -209,7 +211,7 @@ for forbidden_text in \
   'tests/test_install_openclaw_agent.sh' \
   'ppt-master' \
   'skills/slidemax-workflow/SKILL.md'; do
-  if grep -Fqi "$forbidden_text" "$ROOT_DIR/README.md"; then
+  if grep -Fqi "$forbidden_text" "$REPO_DIR/README.md"; then
     echo "README.md must not mention: $forbidden_text" >&2
     missing=1
   fi
@@ -254,7 +256,7 @@ for required_text in \
   '--verification-evidence' \
   '--local-only-approval-evidence' \
   '--attempted-delivery'; do
-  if ! grep -Fq -- "$required_text" "$ROOT_DIR/scripts/check_final_delivery_gate.sh" "$ROOT_DIR/README.md"; then
+  if ! grep -Fq -- "$required_text" "$ROOT_DIR/scripts/check_final_delivery_gate.sh" "$REPO_DIR/README.md"; then
     echo "Completion gate contract missing required text: $required_text" >&2
     missing=1
   fi

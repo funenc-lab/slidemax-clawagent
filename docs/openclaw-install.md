@@ -3,10 +3,11 @@
 ## Executive Summary
 
 This document is a full installation runbook for an AI executor, not a short end-user note.
+It is also the canonical prompt file that can be referenced locally or through the GitHub raw URL for agent installation and update flows.
 The goal is to ensure the AI completes the installation in the correct order:
 
 1. Install the SlideMax companion repository used for actual PPT generation
-2. Register this repository as an OpenClaw agent workspace
+2. Register the PPT workspace at `agents/ppt` as an OpenClaw agent workspace
 
 Key facts:
 
@@ -15,8 +16,9 @@ Key facts:
 - Only the canonical `funenc-lab/slidemax` remote is supported by this installation flow
 - The agent uses the installed SlideMax repository as the canonical workflow skill backend for actual PPT generation
 - The canonical workflow skill file is `SLIDEMAX_DIR/skills/slidemax_workflow/SKILL.md`
-- During installation, that companion skill must be installed into this workspace at `WORKSPACE_DIR/skills/slidemax_workflow`
-- This repository contains the OpenClaw workspace, not the SlideMax companion application itself
+- During installation, that companion skill must be installed into the workspace at `WORKSPACE_DIR/skills/slidemax_workflow`
+- The repository root is `REPO_DIR`, and the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/agents/ppt"`
+- This repository contains the OpenClaw agent repository and the PPT workspace under `agents/ppt`, not the SlideMax companion application itself
 - This runbook does not rely on an install helper script
 - The AI should determine the local OpenClaw action directly from the observed local state
 
@@ -54,8 +56,8 @@ This runbook assumes:
 
 - `git`, `python3`, `pip`, `node`, and `npm` are available
 - network access to GitHub and npm is available
-- if the user does not provide a custom companion path, the companion repository will live next to this workspace
-- the AI is allowed to clone the workspace repository when it is missing locally
+- if the user does not provide a custom companion path, the companion repository will live next to the repository root that contains this workspace
+- the AI is allowed to clone the repository when it is missing locally
 
 ### Local Recommendations
 
@@ -143,33 +145,62 @@ Treat the exact repository path as the absolute path of the local `slidemax-claw
 Treat the exact workspace path as the absolute path of the local `slidemax-clawagent` repository root plus `/agents/ppt`.
 Do not treat an arbitrary current directory as the workspace path.
 
-If the workspace repository is missing locally, clone it first and then enter the workspace root before doing anything else:
+You may start from the repository root, the workspace root, or a parent directory where the repository may need to be cloned.
+Resolve the repository path first, then derive the workspace path:
 
 ```bash
-REPO_PARENT=$(pwd)
-REPO_DIR="${REPO_PARENT}/slidemax-clawagent"
-WORKSPACE_DIR="${REPO_DIR}/agents/ppt"
+CURRENT_DIR=$(pwd)
 
-if [ -d "$REPO_DIR/.git" ]; then
-  git -C "$REPO_DIR" remote get-url origin
-elif [ -e "$REPO_DIR" ]; then
-  echo "Target repository path exists but is not a Git repository: $REPO_DIR" >&2
-  exit 1
+if [ -d "$CURRENT_DIR/.git" ]; then
+  REPO_DIR="$CURRENT_DIR"
+elif [ "$(basename "$CURRENT_DIR")" = "ppt" ] && \
+     [ "$(basename "$(dirname "$CURRENT_DIR")")" = "agents" ] && \
+     [ -d "$CURRENT_DIR/../../.git" ]; then
+  REPO_DIR=$(cd "$CURRENT_DIR/../.." && pwd)
 else
-  git clone https://github.com/funenc-lab/slidemax-clawagent.git "$REPO_DIR"
+  REPO_DIR="${CURRENT_DIR}/slidemax-clawagent"
+  if [ -d "$REPO_DIR/.git" ]; then
+    :
+  elif [ -e "$REPO_DIR" ]; then
+    echo "Target repository path exists but is not a Git repository: $REPO_DIR" >&2
+    exit 1
+  else
+    git clone https://github.com/funenc-lab/slidemax-clawagent.git "$REPO_DIR"
+  fi
 fi
 
+REPO_ORIGIN=$(git -C "$REPO_DIR" remote get-url origin)
+printf '%s\n' "$REPO_ORIGIN"
+
+case "$REPO_ORIGIN" in
+  *funenc-lab/slidemax-clawagent.git|*funenc-lab/slidemax-clawagent)
+    ;;
+  *)
+    echo "Repository remote is not the canonical slidemax-clawagent repository: $REPO_ORIGIN" >&2
+    exit 1
+    ;;
+esac
+
+WORKSPACE_DIR="${REPO_DIR}/agents/ppt"
+test -d "$WORKSPACE_DIR"
+test -f "$REPO_DIR/docs/openclaw-install.md"
+
 cd "$WORKSPACE_DIR"
-test -f ./scripts/validate_workspace.sh
-test -f ./tests/test_workspace_structure.sh
+test -f "$WORKSPACE_DIR/scripts/validate_workspace.sh"
+test -f "$WORKSPACE_DIR/tests/test_workspace_structure.sh"
 ```
 
 Rules:
 
-- if the workspace repository does not exist locally, clone `https://github.com/funenc-lab/slidemax-clawagent.git`
+- if the repository does not exist locally, clone `https://github.com/funenc-lab/slidemax-clawagent.git`
+- if the current directory is already the repository root, reuse it instead of nesting another clone
+- if the current directory is already `agents/ppt`, derive `REPO_DIR` by traversing up two levels
+- if the repository remote is not the canonical `funenc-lab/slidemax-clawagent` remote, stop and report the mismatch
 - if the target repository path exists but is not a Git repository, stop and report the conflict
-- if `./scripts/validate_workspace.sh` is missing, stop immediately
-- if `./tests/test_workspace_structure.sh` is missing, stop immediately
+- if `"$WORKSPACE_DIR"` is missing, stop immediately
+- if `"$REPO_DIR/docs/openclaw-install.md"` is missing, stop immediately
+- if `"$WORKSPACE_DIR/scripts/validate_workspace.sh"` is missing, stop immediately
+- if `"$WORKSPACE_DIR/tests/test_workspace_structure.sh"` is missing, stop immediately
 
 Then report:
 
@@ -450,6 +481,8 @@ Notes:
 
 ## Workspace File Responsibilities
 
+Unless explicitly noted otherwise, every path in this section is relative to `WORKSPACE_DIR`.
+
 ### Root Prompt Files
 
 - `AGENTS.md`
@@ -517,6 +550,14 @@ If any required workspace skill file is missing, do not register or reuse the wo
 - `tests/test_workspace_structure.sh`
   - runs a lightweight structure regression check
 
+## Repository-Level Files
+
+The following file is repository-scoped and is not part of the registered workspace payload:
+
+- `REPO_DIR/docs/openclaw-install.md`
+  - the repository-level installation runbook for cloning, validation, and OpenClaw registration
+  - must remain outside `WORKSPACE_DIR`
+
 ## HEARTBEAT and Progress Reporting
 
 ### HEARTBEAT
@@ -583,12 +624,12 @@ Stop the registration flow and preserve the full error output.
 
 Check these files first:
 
-- `AGENTS.md`
-- `HEARTBEAT.md`
-- `skills/presentation-workflow/SKILL.md`
-- `skills/ppt-generation/SKILL.md`
-- `skills/ppt-review/SKILL.md`
-- `docs/openclaw-install.md`
+- `WORKSPACE_DIR/AGENTS.md`
+- `WORKSPACE_DIR/HEARTBEAT.md`
+- `WORKSPACE_DIR/skills/presentation-workflow/SKILL.md`
+- `WORKSPACE_DIR/skills/ppt-generation/SKILL.md`
+- `WORKSPACE_DIR/skills/ppt-review/SKILL.md`
+- `REPO_DIR/docs/openclaw-install.md`
 
 ## Recommended Reporting Shape
 
