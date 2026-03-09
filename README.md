@@ -73,6 +73,9 @@ Please use https://raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/
 - Run `agents/ppt/scripts/validate_workspace.sh` and `agents/ppt/tests/test_workspace_structure.sh` after installation or workspace changes.
 - Use `agents/ppt/scripts/check_final_delivery_gate.sh` as the canonical runtime completion contract for final deliverables.
 - Prefer a final delivery destination such as a Judao final document or a Feishu document.
+- If the final delivery ecosystem is Feishu, the final destination must be a Feishu document.
+- Do not treat a Feishu chat or group as the final PPT delivery destination.
+- If a Feishu message handoff is requested, the final handoff should be a Feishu online document link message after the Feishu document is ready.
 - Completion messages must include `Delivery status`.
 
 ## Repository Maintenance

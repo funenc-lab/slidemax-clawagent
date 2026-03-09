@@ -114,10 +114,15 @@ require_text "$ROOT_DIR/AGENTS.md" 'Select `slidemax-workflow` as the primary sk
 require_text "$ROOT_DIR/AGENTS.md" 'SLIDEMAX_DIR/skills/slidemax_workflow' 'AGENTS.md'
 require_text "$ROOT_DIR/AGENTS.md" 'Delivery status' 'AGENTS.md'
 require_text "$ROOT_DIR/AGENTS.md" 'scripts/check_final_delivery_gate.sh' 'AGENTS.md'
+require_text "$ROOT_DIR/AGENTS.md" 'If the requested final delivery ecosystem is Feishu, the final destination must be a Feishu document.' 'AGENTS.md'
+require_text "$ROOT_DIR/AGENTS.md" 'Do not treat a Feishu chat or group upload as the final delivery destination for PPT work.' 'AGENTS.md'
+require_text "$ROOT_DIR/AGENTS.md" 'If the target message channel is Feishu, the final handoff must be a concise message that includes the verified Feishu online document link.' 'AGENTS.md'
 
 require_text "$ROOT_DIR/TOOLS.md" 'source OpenClaw workspace' 'TOOLS.md'
 require_text "$ROOT_DIR/TOOLS.md" 'Copy-install that canonical skill into the final OpenClaw workspace at `skills/slidemax_workflow`.' 'TOOLS.md'
 require_text "$ROOT_DIR/TOOLS.md" 'scripts/check_final_delivery_gate.sh' 'TOOLS.md'
+require_text "$ROOT_DIR/TOOLS.md" 'If the final delivery ecosystem is Feishu, the final destination must be a Feishu document rather than a Feishu chat or group.' 'TOOLS.md'
+require_text "$ROOT_DIR/TOOLS.md" 'If the requested channel is Feishu, complete the Feishu document upload first and then send a Feishu online document link message as the secondary handoff.' 'TOOLS.md'
 
 require_text "$ROOT_DIR/IDENTITY.md" 'Primary Deck Generation Skill: slidemax-workflow' 'IDENTITY.md'
 require_text "$ROOT_DIR/IDENTITY.md" 'SlideMax' 'IDENTITY.md'
@@ -130,6 +135,9 @@ for required_text in \
   'INSTALL_AGENT_DIR="$HOME/.openclaw/agents/ppt/agent"' \
   'Do not register `agents/ppt` directly as the final OpenClaw runtime workspace.' \
   'The runtime skill must be copied into the installed workspace at `skills/slidemax_workflow/SKILL.md`.' \
+  'If the final delivery ecosystem is Feishu, the final destination must be a Feishu document.' \
+  'Do not treat a Feishu chat or group as the final PPT delivery destination.' \
+  'If a Feishu message handoff is requested, the final handoff should be a Feishu online document link message after the Feishu document is ready.' \
   'installed workspace path' \
   'installed agentDir path' \
   'scripts/check_final_delivery_gate.sh' \
@@ -190,15 +198,23 @@ done
 
 require_text "$ROOT_DIR/skills/presentation-workflow/SKILL.md" 'final delivery destination' 'presentation-workflow'
 require_text "$ROOT_DIR/skills/presentation-workflow/SKILL.md" 'message-channel-delivery' 'presentation-workflow'
+require_text "$ROOT_DIR/skills/presentation-workflow/SKILL.md" 'If the final delivery ecosystem is Feishu, require the Feishu document destination instead of accepting a Feishu chat or group as the final destination.' 'presentation-workflow'
 require_text "$ROOT_DIR/skills/ppt-generation/SKILL.md" 'delivery target and handoff status' 'ppt-generation'
+require_text "$ROOT_DIR/skills/ppt-generation/SKILL.md" 'If the final delivery ecosystem is Feishu, treat the Feishu document as the required final destination and treat Feishu chat or group handoff as secondary.' 'ppt-generation'
 require_text "$ROOT_DIR/USER.md" 'delivery status' 'USER.md'
 require_text "$ROOT_DIR/skills/final-document-delivery/SKILL.md" 'scripts/check_final_delivery_gate.sh' 'final-document-delivery'
+require_text "$ROOT_DIR/skills/final-document-delivery/SKILL.md" 'If the requested final delivery ecosystem is Feishu, the final delivery document must be a Feishu document.' 'final-document-delivery'
+require_text "$ROOT_DIR/skills/final-document-delivery/SKILL.md" 'Do not treat a Feishu chat or group handoff as final document delivery.' 'final-document-delivery'
+require_text "$ROOT_DIR/skills/final-document-delivery/SKILL.md" 'If the destination is a Feishu document, preserve the verified Feishu online document link for any later message-channel handoff.' 'final-document-delivery'
 require_text "$ROOT_DIR/skills/message-channel-delivery/SKILL.md" 'Feishu' 'message-channel-delivery'
 require_text "$ROOT_DIR/skills/message-channel-delivery/SKILL.md" 'file artifact' 'message-channel-delivery'
 require_text "$ROOT_DIR/skills/message-channel-delivery/SKILL.md" 'channel handoff status' 'message-channel-delivery'
+require_text "$ROOT_DIR/skills/message-channel-delivery/SKILL.md" 'Do not use this skill to replace final delivery to a Feishu document.' 'message-channel-delivery'
+require_text "$ROOT_DIR/skills/message-channel-delivery/SKILL.md" 'Feishu online document link message' 'message-channel-delivery'
 require_text "$ROOT_DIR/scripts/check_final_delivery_gate.sh" '--verification-evidence' 'check_final_delivery_gate.sh'
 require_text "$ROOT_DIR/scripts/check_final_delivery_gate.sh" '--local-only-approval-evidence' 'check_final_delivery_gate.sh'
 require_text "$ROOT_DIR/scripts/check_final_delivery_gate.sh" '--attempted-delivery' 'check_final_delivery_gate.sh'
+require_text "$ROOT_DIR/scripts/check_final_delivery_gate.sh" 'Final delivery destination for Feishu must be feishu-document' 'check_final_delivery_gate.sh'
 
 if [[ "$missing" -ne 0 ]]; then
   exit 1

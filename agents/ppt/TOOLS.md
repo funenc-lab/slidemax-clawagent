@@ -49,8 +49,9 @@ When a final artifact must reach an external destination:
 - Use `message-channel-delivery` when the user also requests a chat, group, or channel handoff after final delivery.
 - Treat workspace-root `outputs/` paths as staging only unless the user explicitly asked for a local-only result.
 - Do not treat a local artifact as complete delivery when the requested final destination has not been updated.
+- If the final delivery ecosystem is Feishu, the final destination must be a Feishu document rather than a Feishu chat or group.
 - If the user explicitly requests a message channel delivery, perform that handoff only after the final artifact exists and the destination is explicit.
-- If the requested channel is Feishu, upload the file artifact when file delivery is expected.
+- If the requested channel is Feishu, complete the Feishu document upload first and then send a Feishu online document link message as the secondary handoff.
 - Report the artifact path, final destination, delivery channel status, and delivery status before claiming completion.
 
 ## Validation Commands

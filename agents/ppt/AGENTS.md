@@ -184,7 +184,7 @@ flowchart TD
   S --> T{Message channel delivery requested?}
   T -- No --> U[Run final delivery gate]
   T -- Yes --> T1{Channel type}
-  T1 -- Feishu --> T2[Upload the artifact file to the Feishu channel with concise status]
+  T1 -- Feishu --> T2[Share the verified Feishu document after the artifact has already been uploaded to the Feishu document]
   T1 -- Other --> T3[Send the artifact or verified final link with concise status]
   T2 --> U
   T3 --> U
@@ -239,7 +239,7 @@ Unless the user explicitly asks for a local-only draft, the task is not complete
 - a final reusable artifact or document-ready package exists
 - the final artifact has a deterministic English-only filename and a stable output path
 - the artifact or package has been sent or published to the requested final delivery document
-- if the user explicitly requested a message channel, that channel handoff includes the artifact itself or a verified final delivery reference, or a concrete blocker has been verified
+- if the user explicitly requested a message channel, that channel handoff includes the required final artifact reference or a concrete blocker has been verified
 - the final reply includes the artifact path, filename, final destination, delivery channel status, and delivery status
 - the completion claim is checked with `scripts/check_final_delivery_gate.sh`, whose CLI is the canonical runtime completion contract, or with an equivalent wrapper that enforces the same fields
 
@@ -248,8 +248,12 @@ Delivery destination rules:
 - Prefer the project final document destination such as a Judao final document or a Feishu document.
 - Treat `outputs/` as a staging area, not the final delivery destination.
 - If a final delivery destination is required but not specified, ask for it before claiming completion.
+- If the requested final delivery ecosystem is Feishu, the final destination must be a Feishu document.
+- If the requested final delivery ecosystem is Feishu, upload the final artifact or document-ready result to the Feishu document before any Feishu chat or group handoff.
 - If a message channel is requested, send the channel delivery only after the artifact exists, the destination is explicit, and the final filename is fixed.
-- If the target message channel is Feishu, upload the artifact file to the Feishu chat or group; do not treat plain text-only handoff as complete file delivery.
+- If the target message channel is Feishu, treat the Feishu chat or group as a secondary handoff only after the Feishu document upload is complete.
+- Do not treat a Feishu chat or group upload as the final delivery destination for PPT work.
+- If the target message channel is Feishu, the final handoff must be a concise message that includes the verified Feishu online document link.
 - If the target message channel is not Feishu, send the artifact directly when the channel supports file delivery; otherwise send a verified final link plus concise status.
 - If delivery tooling, authentication, or network access is unavailable, still produce the final local artifact and report the exact blocker plus the next manual delivery step.
 - Run `scripts/check_final_delivery_gate.sh` before claiming completion for any final deliverable.
@@ -312,7 +316,7 @@ Use these skills by task type:
 
 - `slidemax-workflow`: primary skill for actual PPT, PPTX, SVG, and generated deck artifact output, installed from the SlideMax companion repository
 - `final-document-delivery`: final delivery skill for sending finished artifacts to a Judao final document, Feishu document, or another final destination
-- `message-channel-delivery`: message handoff skill for sending the final artifact or verified final link to a requested chat, group, or channel; Feishu requires file upload when file delivery is expected
+- `message-channel-delivery`: message handoff skill for sending the final artifact or verified final link to a requested chat, group, or channel; Feishu requires a verified online document link message after document delivery
 - `presentation-workflow`: broad orchestration for creation, review, rewrite, and conversion tasks, and a supporting skill for SlideMax-ready input preparation
 - `ppt-generation`: generate a new deck blueprint from raw business or technical inputs when SlideMax needs structured content
 - `ppt-review`: critique deck content and return prioritized improvements

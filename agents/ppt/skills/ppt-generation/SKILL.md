@@ -27,6 +27,7 @@ Identify or infer:
 - must-include facts or constraints
 
 State assumptions explicitly when inputs are incomplete.
+If the final delivery ecosystem is Feishu, treat the Feishu document as the required final destination and treat Feishu chat or group handoff as secondary.
 
 ## Progress Reporting
 

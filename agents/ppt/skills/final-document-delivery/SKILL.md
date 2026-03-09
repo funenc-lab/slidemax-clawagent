@@ -16,6 +16,9 @@ A task that requires external delivery is only complete when one of the followin
 - the artifact has been sent to the requested final delivery document
 - a concrete delivery blocker has been verified and reported together with the exact next manual step
 
+If the requested final delivery ecosystem is Feishu, the final delivery document must be a Feishu document.
+Do not treat a Feishu chat or group handoff as final document delivery.
+
 ## When To Use
 
 Use this skill when:
@@ -77,6 +80,7 @@ Preferred destinations include:
 
 Do not treat `outputs/` as the final destination.
 It is only the staging area.
+If the user only provided a Feishu chat or group but the final ecosystem is Feishu, ask for the Feishu document destination before claiming completion.
 
 ### 3. Select the delivery mechanism
 
@@ -93,6 +97,7 @@ If no suitable delivery tool is available, stop after producing the final local 
 Deliver the final artifact or document-ready content to the requested destination.
 Preserve the final document structure expected by the user.
 Do not silently downgrade to a local-only result.
+If the destination is a Feishu document, upload or publish the final artifact or document-ready result to that Feishu document before any message-channel handoff.
 
 ### 5. Verify the destination state
 
@@ -103,6 +108,8 @@ After the delivery outcome is known, run `scripts/check_final_delivery_gate.sh` 
 - the destination document was updated
 - the destination link is reachable and contains the expected content
 - the send or publish action returned an explicit success signal
+
+If the destination is a Feishu document, preserve the verified Feishu online document link for any later message-channel handoff.
 
 If verification cannot be completed, report the delivery as blocked or unverified instead of complete.
 

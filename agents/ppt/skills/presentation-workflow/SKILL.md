@@ -89,6 +89,7 @@ Identify:
 
 If any of these are missing, make minimal safe assumptions and state them.
 If the task requires external delivery to a final document destination and that destination is missing, ask for it before claiming completion.
+If the final delivery ecosystem is Feishu, require the Feishu document destination instead of accepting a Feishu chat or group as the final destination.
 
 ### 2. Build the narrative spine
 

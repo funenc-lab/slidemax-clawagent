@@ -139,6 +139,13 @@ validate_delivery_status() {
       exit 1
       ;;
   esac
+
+  case "$DESTINATION_TYPE" in
+    feishu-chat|feishu-group|feishu-channel)
+      echo "Final delivery destination for Feishu must be feishu-document, not $DESTINATION_TYPE." >&2
+      exit 1
+      ;;
+  esac
 }
 
 main() {

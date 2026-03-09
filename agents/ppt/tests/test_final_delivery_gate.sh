@@ -63,6 +63,25 @@ main() {
     "$GATE_SCRIPT" \
     --artifact-path "$artifact_file" \
     --delivery-status delivered \
+    --destination-type feishu-chat \
+    --destination-ref https://example.com/chat/123 \
+    --verification-evidence "Chat upload succeeded"
+
+  run_expect_failure \
+    "$GATE_SCRIPT" \
+    --artifact-path "$artifact_file" \
+    --delivery-status blocked \
+    --destination-type feishu-group \
+    --destination-ref https://example.com/group/123 \
+    --attempted-delivery \
+    --verification-evidence "Group upload failed with 401" \
+    --blocker "Missing browser authentication" \
+    --next-manual-step "Sign in and rerun delivery"
+
+  run_expect_failure \
+    "$GATE_SCRIPT" \
+    --artifact-path "$artifact_file" \
+    --delivery-status delivered \
     --destination-type feishu-document \
     --destination-ref https://example.com/doc/123
 
