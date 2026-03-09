@@ -158,7 +158,7 @@ for required_text in \
   'You may start from the repository root, the workspace root, or a parent directory where the repository may need to be cloned.' \
   'CURRENT_DIR=$(pwd)' \
   'Repository remote is not the canonical slidemax-clawagent repository' \
-  'The repository root is `REPO_DIR`, the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/workspace-ppt"`, and the OpenClaw `agentDir` root is `AGENT_DIR="$REPO_DIR/agents/ppt"`' \
+  'The repository root is `REPO_DIR`, the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/workspace-ppt"`, and the agent data root is `AGENT_DIR="$REPO_DIR/agents/ppt"`' \
   'Unless explicitly noted otherwise, every path in this section is relative to `WORKSPACE_DIR`.' \
   'AGENT_DIR="$REPO_DIR/agents/ppt"' \
   'REPO_DIR/docs/openclaw-install.md' \
@@ -169,10 +169,10 @@ for required_text in \
   'cp -R "$SLIDEMAX_DIR/skills/slidemax_workflow" "$WORKSPACE_DIR/skills/slidemax_workflow"' \
   'skills.entries["slidemax-workflow"].env.SLIDEMAX_DIR' \
   'openclaw agents list --json' \
-  'openclaw agents add ppt-agent --workspace "$WORKSPACE_DIR" --agent-dir "$AGENT_DIR" --non-interactive' \
-  'agents.list[$AGENT_INDEX].agentDir' \
-  'already points to `WORKSPACE_DIR` and `AGENT_DIR`' \
-  'points to a different workspace or `agentDir`' \
+  'openclaw agents add ppt-agent --workspace' \
+  'openclaw agents delete ppt-agent' \
+  'already points to `WORKSPACE_DIR`' \
+  'points to a different workspace' \
   'Only determine the local OpenClaw agent status when Step 6 or Step 7 is actually reached' \
   'If the installation stops before the OpenClaw registration or verification step' \
   'the agent should decide the next action based on the actual local OpenClaw state' \

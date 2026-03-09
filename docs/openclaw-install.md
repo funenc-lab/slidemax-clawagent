@@ -17,7 +17,7 @@ Key facts:
 - The agent uses the installed SlideMax repository as the canonical workflow skill backend for actual PPT generation
 - The canonical workflow skill file is `SLIDEMAX_DIR/skills/slidemax_workflow/SKILL.md`
 - During installation, that companion skill must be copy-installed into the workspace at `WORKSPACE_DIR/skills/slidemax_workflow`
-- The repository root is `REPO_DIR`, the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/workspace-ppt"`, and the OpenClaw `agentDir` root is `AGENT_DIR="$REPO_DIR/agents/ppt"`
+- The repository root is `REPO_DIR`, the OpenClaw workspace root is `WORKSPACE_DIR="$REPO_DIR/workspace-ppt"`, and the agent data root is `AGENT_DIR="$REPO_DIR/agents/ppt"`
 - This repository contains the OpenClaw agent repository, the complete PPT workspace under `workspace-ppt`, and the PPT agent data directory under `agents/ppt`, not the SlideMax companion application itself
 - This runbook does not rely on an install helper script
 - The AI should determine the local OpenClaw action directly from the observed local state
@@ -410,12 +410,12 @@ Decision rules:
 
 - if the target OpenClaw agent does not exist yet, create it and register this workspace with OpenClaw
 - if the target OpenClaw agent already exists, reuse it and do not create a duplicate
-- if the target OpenClaw agent already exists and already points to `WORKSPACE_DIR` and `AGENT_DIR`, update the workspace files and reuse the existing registration
-- if the target OpenClaw agent already exists but points to a different workspace or `agentDir`, update the configured paths to `WORKSPACE_DIR` and `AGENT_DIR` without deleting the repo-managed directories
+- if the target OpenClaw agent already exists and already points to `WORKSPACE_DIR`, update the workspace files and reuse the existing registration
+- if the target OpenClaw agent already exists but points to a different workspace, delete it and add it again with `WORKSPACE_DIR`
 - the agent should decide the next action based on the actual local OpenClaw state
 - use direct OpenClaw commands instead of a helper script
 
-Inspect the registered workspace path and `agentDir` from the local OpenClaw state before deciding:
+Inspect the registered workspace path from the local OpenClaw state before deciding:
 
 ```bash
 openclaw agents list --json
@@ -424,28 +424,26 @@ openclaw agents list --json
 Direct add path when the agent does not exist:
 
 ```bash
-openclaw agents add ppt-agent --workspace "$WORKSPACE_DIR" --agent-dir "$AGENT_DIR" --non-interactive
+openclaw agents add ppt-agent --workspace "$WORKSPACE_DIR" --non-interactive
 ```
 
-Direct update path when the agent exists but points to a different workspace or `agentDir`:
+Direct replace path when the agent exists but points to a different workspace:
 
 ```bash
-AGENT_INDEX=$(openclaw agents list --json | python3 -c 'import json,sys; agents=json.load(sys.stdin); print(next(i for i, agent in enumerate(agents) if agent.get("id") == "ppt-agent"))')
-openclaw config set "agents.list[$AGENT_INDEX].workspace" "\"$WORKSPACE_DIR\""
-openclaw config set "agents.list[$AGENT_INDEX].agentDir" "\"$AGENT_DIR\""
-openclaw agents list --json
+openclaw agents delete ppt-agent
+openclaw agents add ppt-agent --workspace "$WORKSPACE_DIR" --non-interactive
 ```
 
-When this add or update action succeeds, the workspace-local skill files under `skills/` become available to the agent through the registered workspace.
+When this add or replace action succeeds, the workspace-local skill files under `skills/` become available to the agent through the registered workspace.
 The canonical `slidemax-workflow` skill should already have been installed during Step 5 at `skills/slidemax_workflow`, sourced from the SlideMax companion repository.
 OpenClaw then loads that installed runtime skill copy from the workspace path on demand.
 
-If the user provided a custom agent name, replace `ppt-agent` with that name in the inspection, add, and config update commands.
+If the user provided a custom agent name, replace `ppt-agent` with that name in the inspection, delete, and add commands.
 
 Only determine the local OpenClaw agent status when Step 6 or Step 7 is actually reached.
 Do not infer or guess the agent status from earlier workspace, dependency, or validation steps.
 If the installation stops before the OpenClaw registration or verification step, report the agent status as undetermined.
-If the local OpenClaw state shows that the existing agent already points to this workspace and `agentDir`, report the result as an update by workspace reuse rather than a new install.
+If the local OpenClaw state shows that the existing agent already points to this workspace, report the result as an update by workspace reuse rather than a new install.
 
 ### Step 7: Post-Install Verification
 
