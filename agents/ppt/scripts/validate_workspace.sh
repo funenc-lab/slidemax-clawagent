@@ -21,7 +21,6 @@ required_files=(
   "skills/message-channel-delivery/SKILL.md"
   "scripts/check_final_delivery_gate.sh"
   "scripts/validate_workspace.sh"
-  "docs/openclaw-install.md"
   "tests/test_workspace_structure.sh"
   "tests/test_final_delivery_gate.sh"
 )
@@ -40,6 +39,11 @@ for relative_path in "${required_files[@]}"; do
   fi
 done
 
+if [[ -e "$ROOT_DIR/docs" ]]; then
+  echo "Workspace root should not contain docs/; installation docs belong at the repository root." >&2
+  missing=1
+fi
+
 for forbidden_repo_path in \
   ".openclaw" \
   "AGENTS.md" \
@@ -49,7 +53,6 @@ for forbidden_repo_path in \
   "SOUL.md" \
   "TOOLS.md" \
   "USER.md" \
-  "docs" \
   "scripts" \
   "skills" \
   "tests"; do
@@ -59,7 +62,7 @@ for forbidden_repo_path in \
   fi
 done
 
-for required_repo_path in "README.md" ".gitignore"; do
+for required_repo_path in "README.md" ".gitignore" "docs/openclaw-install.md"; do
   if [[ ! -e "$REPO_DIR/$required_repo_path" ]]; then
     echo "Repository root missing required file: $required_repo_path" >&2
     missing=1
@@ -159,7 +162,7 @@ for required_text in \
   'If the installation stops before the OpenClaw registration or verification step' \
   'the agent should decide the next action based on the actual local OpenClaw state' \
   'actual PPT generation'; do
-  if ! grep -Fq "$required_text" "$ROOT_DIR/docs/openclaw-install.md"; then
+  if ! grep -Fq "$required_text" "$REPO_DIR/docs/openclaw-install.md"; then
     echo "Install docs missing required text: $required_text" >&2
     missing=1
   fi
@@ -171,7 +174,7 @@ for forbidden_text in \
   'ppt-master' \
   'PPT_MASTER_DIR' \
   'skills/slidemax-workflow/SKILL.md'; do
-  if grep -Fqi "$forbidden_text" "$ROOT_DIR/docs/openclaw-install.md"; then
+  if grep -Fqi "$forbidden_text" "$REPO_DIR/docs/openclaw-install.md"; then
     echo "Install docs must not mention: $forbidden_text" >&2
     missing=1
   fi
@@ -179,7 +182,7 @@ done
 
 for required_text in \
   'AI Install Prompt' \
-  'raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/agents/ppt/docs/openclaw-install.md' \
+  'raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md' \
   'agents/ppt' \
   'slidemax-clawagent repository root' \
   'clone it first' \

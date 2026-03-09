@@ -21,7 +21,6 @@ required_files=(
   "skills/final-document-delivery/SKILL.md"
   "skills/message-channel-delivery/SKILL.md"
   "scripts/check_final_delivery_gate.sh"
-  "docs/openclaw-install.md"
   "tests/test_final_delivery_gate.sh"
 )
 
@@ -31,6 +30,11 @@ for relative_path in "${required_files[@]}"; do
     exit 1
   fi
 done
+
+if [[ -e "$ROOT_DIR/docs" ]]; then
+  echo 'Workspace root should not contain docs/; installation docs belong at the repository root.' >&2
+  exit 1
+fi
 
 if [[ "$(basename "$ROOT_DIR")" != "ppt" || "$(basename "$(dirname "$ROOT_DIR")")" != "agents" ]]; then
   echo 'Workspace root must live under agents/ppt.' >&2
@@ -46,7 +50,6 @@ for forbidden_repo_path in \
   'SOUL.md' \
   'TOOLS.md' \
   'USER.md' \
-  'docs' \
   'scripts' \
   'skills' \
   'tests'; do
@@ -56,7 +59,7 @@ for forbidden_repo_path in \
   fi
 done
 
-for required_repo_path in 'README.md' '.gitignore'; do
+for required_repo_path in 'README.md' '.gitignore' 'docs/openclaw-install.md'; do
   if [[ ! -e "$REPO_DIR/$required_repo_path" ]]; then
     echo "Repository root missing required file: $required_repo_path" >&2
     exit 1
@@ -127,7 +130,7 @@ for required_text in \
   'Delivery status' \
   'scripts/check_final_delivery_gate.sh' \
   'canonical runtime completion contract'; do
-  if ! grep -Fq "$required_text" "$ROOT_DIR/README.md" "$ROOT_DIR/docs/openclaw-install.md"; then
+  if ! grep -Fq "$required_text" "$ROOT_DIR/README.md" "$REPO_DIR/docs/openclaw-install.md"; then
     echo "README or install docs missing required text: $required_text" >&2
     exit 1
   fi
@@ -136,7 +139,7 @@ done
 for forbidden_text in \
   'ppt-master' \
   'skills/slidemax-workflow/SKILL.md'; do
-  if grep -Fqi "$forbidden_text" "$ROOT_DIR/README.md" "$ROOT_DIR/docs/openclaw-install.md"; then
+  if grep -Fqi "$forbidden_text" "$ROOT_DIR/README.md" "$REPO_DIR/docs/openclaw-install.md"; then
     echo "README or install docs should not mention: $forbidden_text" >&2
     exit 1
   fi

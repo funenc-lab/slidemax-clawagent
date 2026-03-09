@@ -19,7 +19,7 @@ Canonical repositories:
 - SlideMax companion repository: `https://github.com/funenc-lab/slidemax`
 - OpenClaw workspace repository: `https://github.com/funenc-lab/slidemax-clawagent`
 
-For the full AI-oriented installation runbook, see `docs/openclaw-install.md`.
+For the full AI-oriented installation runbook, see `../../docs/openclaw-install.md`.
 
 ## How This Maps to OpenClaw
 
@@ -83,7 +83,7 @@ According to the companion repository, the minimum setup includes:
 - `tests/test_workspace_structure.sh`
 - `scripts/check_final_delivery_gate.sh`
 - `tests/test_final_delivery_gate.sh`
-- `docs/openclaw-install.md`
+- `../../docs/openclaw-install.md`
 
 ## Operating Model
 
@@ -120,7 +120,7 @@ The expected installation sequence is:
 6. install `openclaw` globally if needed
 7. register this directory as an OpenClaw workspace
 
-Read `docs/openclaw-install.md` first if an AI agent is performing the installation.
+Read `../../docs/openclaw-install.md` first if an AI agent is performing the installation.
 
 ## Quick Install
 
@@ -180,7 +180,7 @@ If you want an AI coding agent to perform the installation, copy the following M
 
 ```markdown
 Treat the following file as the installation runbook (execution prompt file) and follow it exactly:
-https://raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/agents/ppt/docs/openclaw-install.md
+https://raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md
 
 Read it completely and execute the installation exactly as written in that file.
 Do not skip steps and do not change the documented order.
@@ -300,4 +300,4 @@ Recommended practice:
 - add richer `.pptx` handling or export workflows
 - add more domain skills such as board updates, sales pitches, or technical design reviews
 - add message-channel specific delivery adapters or templates
-- add troubleshooting, upgrade, or uninstall guidance to `docs/openclaw-install.md`
+- add troubleshooting, upgrade, or uninstall guidance to `../../docs/openclaw-install.md`

@@ -15,3 +15,4 @@ bash tests/test_workspace_structure.sh
 ```
 
 Read the workspace guide at `agents/ppt/README.md` before installing or registering the agent.
+Read the repository installation runbook at `docs/openclaw-install.md` for OpenClaw setup and registration.
