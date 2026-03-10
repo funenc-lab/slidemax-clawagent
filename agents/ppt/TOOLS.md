@@ -24,6 +24,13 @@ Do not turn this into a second `AGENTS.md`.
 - `HEARTBEAT.md` is the canonical source for proactive follow-up triggers and the exact idle response.
 - `scripts/check_final_delivery_gate.sh` is the canonical runtime completion contract for final deliverables.
 
+## Reading Notes
+
+- Prefer targeted discovery first with file search, headings, or narrow section reads.
+- Prefer `rg` plus a focused `sed -n` range over dumping an entire long file.
+- Read additional sections only when the current excerpt does not answer the task.
+- Do not load every skill or reference file in advance; follow links only when they are needed.
+
 ## Local Runtime Notes
 
 - This repository contains the source OpenClaw workspace, not the SlideMax companion application.

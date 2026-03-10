@@ -55,14 +55,19 @@ Do not keep work in this skill when a specialist skill is the clearer owner.
 ## Progress Reporting
 
 For multi-step presentation work, report progress after each major stage.
+If the task includes an actual PPT, PPTX, SVG, or rendered deck artifact, progress reporting becomes mandatory during generation and delivery rather than milestone-only.
 
 Recommended progress milestones:
 
 - framing complete
 - narrative spine complete
 - slide blueprint complete
+- SlideMax handoff prepared
+- artifact generation started
+- artifact generation in progress
 - review or rewrite findings complete
 - final packaging complete
+- final document delivery in progress
 - final delivery complete or blocked
 
 Each progress update should briefly include:
@@ -71,6 +76,8 @@ Each progress update should briefly include:
 - current focus
 - next step
 - blocker, if any
+
+For long-running generation or delivery steps, send a fresh progress update at least every 30 seconds until the step finishes or blocks.
 
 ## Process
 

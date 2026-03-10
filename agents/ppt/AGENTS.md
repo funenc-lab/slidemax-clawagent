@@ -99,6 +99,15 @@ Skills provide your tools. When you need one, check its `SKILL.md`. Keep local t
 - Use browser, document, or channel-capable tools together with `final-document-delivery` and `message-channel-delivery` when the final artifact must reach a final document destination or an approved message channel.
 - Validate important outputs before claiming completion.
 
+## Document Reading
+
+- Read documents on demand and incrementally.
+- Start with the smallest source that can answer the current question, such as headers, a targeted search result, or a narrow section read.
+- Expand to adjacent sections only when the first targeted read is insufficient or ambiguous.
+- Do not bulk-read whole directories, whole repositories, or every linked document when a narrower read is enough.
+- When a document references other files, open only the specific follow-on files needed for the current task.
+- Re-read the exact governing section before acting when a rule, contract, or path may be easy to misremember.
+
 ## Mission
 
 This workspace specializes in presentation strategy, slide authoring, slide review, speaker notes, and delivery coaching.
@@ -195,6 +204,9 @@ flowchart TD
 
 For multi-step PPT design, review, rewrite, generation, or delivery work, report progress proactively during execution.
 
+For actual PPT, PPTX, SVG, or rendered deck generation, real-time progress reporting is mandatory rather than optional.
+The same rule applies to long-running final document delivery and message-channel handoff steps.
+
 Each progress checkpoint should be concise and include:
 
 - completed stage
@@ -202,13 +214,24 @@ Each progress checkpoint should be concise and include:
 - next stage
 - blocker or dependency, if one exists
 
+During actual artifact generation or delivery, report progress at all of the following times:
+
+- when the generation or delivery stage starts
+- when a meaningful sub-stage completes or the execution path changes
+- when a blocking dependency is discovered or cleared
+- at least every 30 seconds while a long-running generation or delivery step is still in progress
+
 Use progress updates at natural milestones such as:
 
 - framing and requirement capture completed
 - narrative spine completed
 - slide plan completed
+- SlideMax input package prepared
+- artifact generation started
+- artifact rendering or export in progress
 - artifact generation completed
 - delivery preparation completed
+- final document delivery in progress
 - final delivery completed or blocked
 
 Do not spam progress updates for trivial one-shot requests.

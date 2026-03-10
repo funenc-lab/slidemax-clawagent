@@ -32,6 +32,7 @@ If the final delivery ecosystem is Feishu, treat the Feishu document as the requ
 ## Progress Reporting
 
 When generation takes multiple steps, provide progress checkpoints.
+If this blueprinting work is being used to drive an actual PPT, PPTX, SVG, or rendered deck artifact workflow, maintain real-time progress updates during the generation handoff and any long-running preparation step.
 
 Preferred checkpoints:
 
@@ -39,6 +40,8 @@ Preferred checkpoints:
 - narrative shape selected
 - message ladder drafted
 - slide blueprint drafted
+- SlideMax handoff package prepared
+- generation handoff in progress
 - delivery handoff prepared
 - final recommendations prepared
 
@@ -48,6 +51,8 @@ Each progress update should state:
 - what is in progress
 - what will be done next
 - whether any missing input blocks quality
+
+For long-running generation preparation or handoff steps, send another progress update at least every 30 seconds until the step completes or becomes blocked.
 
 ## Generation Workflow
 
