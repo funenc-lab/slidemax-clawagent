@@ -22,9 +22,14 @@ Canonical repositories:
 
 - Repository root: the local `slidemax-clawagent` checkout
 - Source workspace root: `agents/ppt`
-- AI install prompt file: `docs/openclaw-install.md`
-- Workspace validation: `agents/ppt/scripts/validate_workspace.sh`
-- Workspace structure test: `agents/ppt/tests/test_workspace_structure.sh`
+- AI install prompt entry file: `docs/openclaw-install.md`
+- Fresh install runbook: `docs/openclaw-install-fresh.md`
+- Update runbook: `docs/openclaw-update.md`
+- Workspace validation: `scripts/validate_workspace.sh`
+- Workspace structure test: `tests/test_workspace_structure.sh`
+
+The entry file `docs/openclaw-install.md` is the only external prompt target.
+It detects local state first, then routes to the fresh-install or update runbook.
 
 ## Installation Contract
 
@@ -33,6 +38,7 @@ Canonical repositories:
 - Treat the default installed OpenClaw workspace root as `INSTALL_WORKSPACE_DIR="$HOME/.openclaw/workspace-ppt"`.
 - Treat the default installed OpenClaw agent data root as `INSTALL_AGENT_DIR="$HOME/.openclaw/agents/ppt/agent"`.
 - Use `REPO_DIR/docs/openclaw-install.md` as the project installation and update prompt file.
+- Treat `SOURCE_WORKSPACE_DIR` as repository source only, not as the final OpenClaw runtime workspace.
 - Do not register `agents/ppt` directly as the final OpenClaw runtime workspace.
 - Install or update the runtime workspace from this source workspace according to `docs/openclaw-install.md`.
 - Install the SlideMax companion repository before registering the workspace with OpenClaw.
@@ -44,7 +50,6 @@ Canonical repositories:
 ## Human Quick Start
 
 ```bash
-cd agents/ppt
 bash scripts/validate_workspace.sh
 bash tests/test_workspace_structure.sh
 ```
@@ -54,23 +59,15 @@ Use `docs/openclaw-install.md` as the installation and update prompt file for hu
 
 ## AI Install Prompt
 
-Use one of the following single-line prompts with your AI coding agent.
-
-Local prompt:
+Use this single prompt with your AI coding agent:
 
 ```text
-Please use <repo_root>/docs/openclaw-install.md to install or update this agent. That file is the project's installation and update prompt file. Treat <repo_root> as the repository root, treat <repo_root>/agents/ppt as the source workspace root, install the final OpenClaw workspace and agentDir exactly as that file defines, and report the source workspace path, installed workspace path, installed agentDir path, SlideMax path, validation results, agent registration status, and any blocker.
-```
-
-Remote prompt:
-
-```text
-Please use https://raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md to install or update this agent. That URL is the project's installation and update prompt file. Use the local repository checkout as the repository root, use its `agents/ppt` directory as the source workspace root, install the final OpenClaw workspace and agentDir exactly as that file defines, and report the source workspace path, installed workspace path, installed agentDir path, SlideMax path, validation results, agent registration status, and any blocker.
+Use https://raw.githubusercontent.com/funenc-lab/slidemax-clawagent/main/docs/openclaw-install.md to install or update this agent. Use the local checkout as repo root, use `agents/ppt` only as the source workspace, follow the file exactly, and report the installed workspace path, installed agentDir path, SlideMax path, validation results, registration status, and any blocker.
 ```
 
 ## Validation and Delivery Contract
 
-- Run `agents/ppt/scripts/validate_workspace.sh` and `agents/ppt/tests/test_workspace_structure.sh` after installation or workspace changes.
+- Run `bash scripts/validate_workspace.sh` and `bash tests/test_workspace_structure.sh` after installation or workspace changes.
 - Use `agents/ppt/scripts/check_final_delivery_gate.sh` as the canonical runtime completion contract for final deliverables.
 - Prefer a final delivery destination such as a Judao final document or a Feishu document.
 - If the final delivery ecosystem is Feishu, the final destination must be a Feishu document.
