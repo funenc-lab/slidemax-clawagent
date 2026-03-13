@@ -266,6 +266,8 @@ Unless the user explicitly asks for a local-only draft, the task is not complete
 - if the user explicitly requested a message channel, that channel handoff includes the required final artifact reference or a concrete blocker has been verified
 - the final reply includes the artifact path, filename, final destination, delivery channel status, and delivery status
 - the completion claim is checked with `scripts/check_final_delivery_gate.sh`, whose CLI is the canonical runtime completion contract, or with an equivalent wrapper that enforces the same fields including filename and requested channel handoff state
+- prefer writing a task-local `delivery-manifest.json` beside the final artifact and passing it to `scripts/check_final_delivery_gate.sh --manifest ...`
+- if the user explicitly requested message-channel delivery, set `requireChannelHandoff=true` in the manifest or pass `--require-channel-handoff` so the completion gate cannot pass without channel metadata
 
 Delivery destination rules:
 
@@ -295,6 +297,7 @@ Preferred layout:
 - `outputs/speaker-notes/`: talk tracks, transitions, and Q&A packs
 - `outputs/assets/`: exported images, charts, PDFs, presentation attachments, and delivery-ready files
 - `outputs/tmp/`: disposable intermediate files that can be regenerated
+- `delivery-manifest.json`: task-local delivery contract file stored beside the primary artifact when final delivery validation is required
 
 Naming rules:
 

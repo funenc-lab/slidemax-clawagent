@@ -69,6 +69,8 @@ Use these checks before completion when they apply:
 - `bash tests/test_final_delivery_gate.sh`
 
 Do not claim completion for any final deliverable until `scripts/check_final_delivery_gate.sh` or an equivalent wrapper confirms the required fields.
+Prefer a task-local `delivery-manifest.json` and invoke the gate with `--manifest /absolute/path/to/delivery-manifest.json`.
+If the user explicitly requested message-channel delivery, set `requireChannelHandoff=true` in that manifest or include `--require-channel-handoff` in the gate invocation.
 
 ## Environment Configuration
 

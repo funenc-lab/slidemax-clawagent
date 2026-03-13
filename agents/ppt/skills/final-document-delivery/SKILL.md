@@ -40,6 +40,7 @@ Do not use this skill when:
 Confirm or collect:
 
 - final artifact path
+- final artifact filename
 - final delivery destination type
 - final delivery destination link, identifier, or access path
 - delivery format expected by the destination
@@ -102,7 +103,7 @@ If the destination is a Feishu document, upload or publish the final artifact or
 ### 5. Verify the destination state
 
 After delivery, verify at least one of the following:
-After the delivery outcome is known, run `scripts/check_final_delivery_gate.sh` with the artifact path, artifact filename, delivery status, destination details, verification evidence, blocker metadata when applicable, channel metadata when applicable, and local-only approval evidence when applicable before claiming completion. The CLI of that script is the canonical runtime completion contract.
+After the delivery outcome is known, write a task-local `delivery-manifest.json` beside the primary artifact whenever practical. Then run `scripts/check_final_delivery_gate.sh --manifest /absolute/path/to/delivery-manifest.json`. The manifest should contain the artifact path, artifact filename, delivery status, destination details, verification evidence, blocker metadata when applicable, channel metadata when applicable, and local-only approval evidence when applicable. If the user explicitly requested message-channel delivery as part of completion, set `requireChannelHandoff=true`. The CLI of that script remains the canonical runtime completion contract.
 
 
 - the destination document was updated

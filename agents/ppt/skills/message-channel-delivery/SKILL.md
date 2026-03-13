@@ -81,4 +81,4 @@ Always report:
 - channel handoff status
 - exact blocker and next manual step if the handoff did not complete
 
-When this handoff is part of the final completion path, pass the channel metadata into `scripts/check_final_delivery_gate.sh` so the canonical completion gate covers the requested message-channel result as well.
+When this handoff is part of the final completion path, write the channel metadata into the task-local `delivery-manifest.json` and set `requireChannelHandoff=true`. Then validate with `scripts/check_final_delivery_gate.sh --manifest /absolute/path/to/delivery-manifest.json` so the canonical completion gate cannot pass without the requested message-channel result.

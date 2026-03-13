@@ -27,7 +27,37 @@ main() {
   trap "rm -rf '$temp_dir'" EXIT
 
   local artifact_file=$temp_dir/final-deck.pptx
+  local manifest_file=$temp_dir/delivery-manifest.json
+  local manifest_missing_channel=$temp_dir/delivery-manifest-missing-channel.json
   touch "$artifact_file"
+
+  cat >"$manifest_file" <<EOF_MANIFEST
+{
+  "artifactPath": "$artifact_file",
+  "artifactFilename": "final-deck.pptx",
+  "deliveryStatus": "delivered",
+  "destinationType": "feishu-document",
+  "destinationRef": "https://example.com/doc/manifest-123",
+  "verificationEvidence": "Feishu API returned success status 200",
+  "requireChannelHandoff": true,
+  "channelType": "feishu-chat",
+  "channelRef": "feishu://chat/manifest-456",
+  "channelStatus": "sent",
+  "channelEvidence": "Feishu chat message sent with verified online document link"
+}
+EOF_MANIFEST
+
+  cat >"$manifest_missing_channel" <<EOF_MANIFEST
+{
+  "artifactPath": "$artifact_file",
+  "artifactFilename": "final-deck.pptx",
+  "deliveryStatus": "delivered",
+  "destinationType": "feishu-document",
+  "destinationRef": "https://example.com/doc/manifest-789",
+  "verificationEvidence": "Feishu API returned success status 200",
+  "requireChannelHandoff": true
+}
+EOF_MANIFEST
 
   run_expect_success \
     "$GATE_SCRIPT" \
@@ -61,6 +91,7 @@ main() {
     "$GATE_SCRIPT" \
     --artifact-path "$artifact_file" \
     --artifact-filename final-deck.pptx \
+    --require-channel-handoff \
     --delivery-status delivered \
     --destination-type feishu-document \
     --destination-ref https://example.com/doc/123 \
@@ -69,6 +100,10 @@ main() {
     --channel-ref feishu://chat/456 \
     --channel-status sent \
     --channel-evidence "Feishu chat message sent with verified online document link"
+
+  run_expect_success \
+    "$GATE_SCRIPT" \
+    --manifest "$manifest_file"
 
   run_expect_failure \
     "$GATE_SCRIPT" \
@@ -97,13 +132,40 @@ main() {
     "$GATE_SCRIPT" \
     --artifact-path "$artifact_file" \
     --artifact-filename final-deck.pptx \
+    --require-channel-handoff \
+    --delivery-status delivered \
+    --destination-type feishu-document \
+    --destination-ref https://example.com/doc/123 \
+    --verification-evidence "Feishu API returned success status 200"
+
+  run_expect_failure \
+    "$GATE_SCRIPT" \
+    --artifact-path "$artifact_file" \
+    --artifact-filename final-deck.pptx \
+    --require-channel-handoff \
     --delivery-status delivered \
     --destination-type feishu-document \
     --destination-ref https://example.com/doc/123 \
     --verification-evidence "Feishu API returned success status 200" \
     --channel-type feishu-chat \
-    --channel-ref feishu://chat/456 \
-    --channel-status sent
+    --channel-status sent \
+    --channel-evidence "Feishu chat message sent with verified online document link"
+
+  run_expect_failure \
+    "$GATE_SCRIPT" \
+    --artifact-path "$artifact_file" \
+    --artifact-filename final-deck.pptx \
+    --require-channel-handoff \
+    --delivery-status local-only-draft \
+    --local-only-approval-evidence "User explicitly asked for a local-only draft in the thread"
+
+  run_expect_failure \
+    "$GATE_SCRIPT" \
+    --manifest "$manifest_missing_channel"
+
+  run_expect_failure \
+    "$GATE_SCRIPT" \
+    --manifest "$temp_dir/missing-manifest.json"
 
   run_expect_failure \
     "$GATE_SCRIPT" \

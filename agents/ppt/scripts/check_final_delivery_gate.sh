@@ -17,14 +17,18 @@ CHANNEL_EVIDENCE=""
 CHANNEL_BLOCKER=""
 CHANNEL_NEXT_MANUAL_STEP=""
 ATTEMPTED_DELIVERY=0
+REQUIRE_CHANNEL_HANDOFF=0
+MANIFEST_PATH=""
 
 usage() {
   cat <<'EOF_USAGE'
 Usage: check_final_delivery_gate.sh --artifact-path PATH --artifact-filename NAME --delivery-status STATUS [options]
+       check_final_delivery_gate.sh --manifest PATH [options]
 
 The CLI arguments of this script are the canonical runtime completion contract.
 
 Options:
+  --manifest PATH                    Read the delivery contract from a JSON manifest file.
   --artifact-path PATH               Local file or directory that represents the final artifact.
   --artifact-filename NAME          Expected final artifact file name. Must match the path basename and use English-only naming.
   --delivery-status STATUS           One of: delivered, blocked, local-only-draft.
@@ -42,6 +46,7 @@ Options:
   --channel-evidence TEXT            Evidence that channel handoff succeeded or that a blocker was verified.
   --channel-blocker TEXT             Verified channel handoff blocker.
   --channel-next-manual-step TEXT    Exact next manual step when channel handoff is blocked.
+  --require-channel-handoff          Require message channel metadata for this completion claim.
   -h, --help                         Show this help message.
 EOF_USAGE
 }
@@ -62,6 +67,11 @@ parse_args() {
       --artifact-path)
         [[ $# -ge 2 ]] || { echo "Missing value for --artifact-path." >&2; exit 1; }
         ARTIFACT_PATH=$2
+        shift
+        ;;
+      --manifest)
+        [[ $# -ge 2 ]] || { echo "Missing value for --manifest." >&2; exit 1; }
+        MANIFEST_PATH=$2
         shift
         ;;
       --delivery-status)
@@ -91,6 +101,9 @@ parse_args() {
         ;;
       --attempted-delivery)
         ATTEMPTED_DELIVERY=1
+        ;;
+      --require-channel-handoff)
+        REQUIRE_CHANNEL_HANDOFF=1
         ;;
       --blocker)
         [[ $# -ge 2 ]] || { echo "Missing value for --blocker." >&2; exit 1; }
@@ -151,6 +164,82 @@ parse_args() {
   done
 }
 
+load_manifest_defaults() {
+  if [[ -z "$MANIFEST_PATH" ]]; then
+    return
+  fi
+
+  if [[ ! -f "$MANIFEST_PATH" ]]; then
+    echo "Delivery manifest does not exist: $MANIFEST_PATH" >&2
+    exit 1
+  fi
+
+  eval "$(
+    python3 - "$MANIFEST_PATH" <<'PY'
+import json
+import shlex
+import sys
+
+manifest_path = sys.argv[1]
+with open(manifest_path, "r", encoding="utf-8") as fh:
+    data = json.load(fh)
+
+field_map = {
+    "artifactPath": "MANIFEST_ARTIFACT_PATH",
+    "artifactFilename": "MANIFEST_ARTIFACT_FILENAME",
+    "deliveryStatus": "MANIFEST_DELIVERY_STATUS",
+    "destinationType": "MANIFEST_DESTINATION_TYPE",
+    "destinationRef": "MANIFEST_DESTINATION_REF",
+    "blocker": "MANIFEST_BLOCKER",
+    "nextManualStep": "MANIFEST_NEXT_MANUAL_STEP",
+    "verificationEvidence": "MANIFEST_VERIFICATION_EVIDENCE",
+    "localOnlyApprovalEvidence": "MANIFEST_LOCAL_ONLY_APPROVAL_EVIDENCE",
+    "channelType": "MANIFEST_CHANNEL_TYPE",
+    "channelRef": "MANIFEST_CHANNEL_REF",
+    "channelStatus": "MANIFEST_CHANNEL_STATUS",
+    "channelEvidence": "MANIFEST_CHANNEL_EVIDENCE",
+    "channelBlocker": "MANIFEST_CHANNEL_BLOCKER",
+    "channelNextManualStep": "MANIFEST_CHANNEL_NEXT_MANUAL_STEP",
+}
+
+for manifest_key, shell_name in field_map.items():
+    value = data.get(manifest_key, "")
+    if value is None:
+        value = ""
+    print(f"{shell_name}={shlex.quote(str(value))}")
+
+attempted = "1" if data.get("attemptedDelivery") else "0"
+require_channel = "1" if data.get("requireChannelHandoff") else "0"
+print(f"MANIFEST_ATTEMPTED_DELIVERY={attempted}")
+print(f"MANIFEST_REQUIRE_CHANNEL_HANDOFF={require_channel}")
+PY
+  )"
+
+  [[ -n "$ARTIFACT_PATH" ]] || ARTIFACT_PATH=$MANIFEST_ARTIFACT_PATH
+  [[ -n "$ARTIFACT_FILENAME" ]] || ARTIFACT_FILENAME=$MANIFEST_ARTIFACT_FILENAME
+  [[ -n "$DELIVERY_STATUS" ]] || DELIVERY_STATUS=$MANIFEST_DELIVERY_STATUS
+  [[ -n "$DESTINATION_TYPE" ]] || DESTINATION_TYPE=$MANIFEST_DESTINATION_TYPE
+  [[ -n "$DESTINATION_REF" ]] || DESTINATION_REF=$MANIFEST_DESTINATION_REF
+  [[ -n "$BLOCKER" ]] || BLOCKER=$MANIFEST_BLOCKER
+  [[ -n "$NEXT_MANUAL_STEP" ]] || NEXT_MANUAL_STEP=$MANIFEST_NEXT_MANUAL_STEP
+  [[ -n "$VERIFICATION_EVIDENCE" ]] || VERIFICATION_EVIDENCE=$MANIFEST_VERIFICATION_EVIDENCE
+  [[ -n "$LOCAL_ONLY_APPROVAL_EVIDENCE" ]] || LOCAL_ONLY_APPROVAL_EVIDENCE=$MANIFEST_LOCAL_ONLY_APPROVAL_EVIDENCE
+  [[ -n "$CHANNEL_TYPE" ]] || CHANNEL_TYPE=$MANIFEST_CHANNEL_TYPE
+  [[ -n "$CHANNEL_REF" ]] || CHANNEL_REF=$MANIFEST_CHANNEL_REF
+  [[ -n "$CHANNEL_STATUS" ]] || CHANNEL_STATUS=$MANIFEST_CHANNEL_STATUS
+  [[ -n "$CHANNEL_EVIDENCE" ]] || CHANNEL_EVIDENCE=$MANIFEST_CHANNEL_EVIDENCE
+  [[ -n "$CHANNEL_BLOCKER" ]] || CHANNEL_BLOCKER=$MANIFEST_CHANNEL_BLOCKER
+  [[ -n "$CHANNEL_NEXT_MANUAL_STEP" ]] || CHANNEL_NEXT_MANUAL_STEP=$MANIFEST_CHANNEL_NEXT_MANUAL_STEP
+
+  if [[ "$ATTEMPTED_DELIVERY" -eq 0 && "$MANIFEST_ATTEMPTED_DELIVERY" -eq 1 ]]; then
+    ATTEMPTED_DELIVERY=1
+  fi
+
+  if [[ "$REQUIRE_CHANNEL_HANDOFF" -eq 0 && "$MANIFEST_REQUIRE_CHANNEL_HANDOFF" -eq 1 ]]; then
+    REQUIRE_CHANNEL_HANDOFF=1
+  fi
+}
+
 validate_common_requirements() {
   require_value --artifact-path "$ARTIFACT_PATH"
   require_value --artifact-filename "$ARTIFACT_FILENAME"
@@ -209,6 +298,17 @@ validate_delivery_status() {
 }
 
 validate_channel_requirements() {
+  if [[ "$REQUIRE_CHANNEL_HANDOFF" -eq 1 && "$DELIVERY_STATUS" == "local-only-draft" ]]; then
+    echo "Local-only draft cannot require message channel handoff." >&2
+    exit 1
+  fi
+
+  if [[ "$REQUIRE_CHANNEL_HANDOFF" -eq 1 ]]; then
+    require_value --channel-type "$CHANNEL_TYPE"
+    require_value --channel-ref "$CHANNEL_REF"
+    require_value --channel-status "$CHANNEL_STATUS"
+  fi
+
   if [[ -z "$CHANNEL_TYPE$CHANNEL_REF$CHANNEL_STATUS$CHANNEL_EVIDENCE$CHANNEL_BLOCKER$CHANNEL_NEXT_MANUAL_STEP" ]]; then
     return
   fi
@@ -249,6 +349,7 @@ validate_channel_requirements() {
 
 main() {
   parse_args "$@"
+  load_manifest_defaults
   validate_common_requirements
   validate_delivery_status
   validate_channel_requirements
@@ -267,6 +368,14 @@ main() {
 
   if [[ -n "$CHANNEL_STATUS" ]]; then
     echo "Channel status: $CHANNEL_STATUS"
+  fi
+
+  if [[ "$REQUIRE_CHANNEL_HANDOFF" -eq 1 ]]; then
+    echo "Channel handoff required: yes"
+  fi
+
+  if [[ -n "$MANIFEST_PATH" ]]; then
+    echo "Manifest path: $MANIFEST_PATH"
   fi
 }
 
