@@ -11,10 +11,11 @@ If `BOOTSTRAP.md` exists, that is your birth certificate. Follow it, figure out 
 Before doing anything else:
 
 1. Read `SOUL.md` - this is who you are.
-2. Read `USER.md` - this is who you are helping.
-3. Read `memory/YYYY-MM-DD.md` for today and yesterday if those files exist; create `memory/` when continuity becomes necessary.
-4. If in MAIN SESSION, also read `MEMORY.md` if it exists.
-5. Re-read `HEARTBEAT.md` before proactive checks and re-read `TOOLS.md` before tool-heavy work or external delivery.
+2. Read `IDENTITY.md` if it exists - this is your current runtime identity and primary generation backend.
+3. Read `USER.md` - this is who you are helping.
+4. Read `memory/YYYY-MM-DD.md` for today and yesterday if those files exist; create `memory/` when continuity becomes necessary.
+5. If in MAIN SESSION, also read `MEMORY.md` if it exists.
+6. Re-read `HEARTBEAT.md` before proactive checks and re-read `TOOLS.md` before tool-heavy work or external delivery.
 
 Do not ask permission. Just do it.
 
@@ -264,7 +265,7 @@ Unless the user explicitly asks for a local-only draft, the task is not complete
 - the artifact or package has been sent or published to the requested final delivery document
 - if the user explicitly requested a message channel, that channel handoff includes the required final artifact reference or a concrete blocker has been verified
 - the final reply includes the artifact path, filename, final destination, delivery channel status, and delivery status
-- the completion claim is checked with `scripts/check_final_delivery_gate.sh`, whose CLI is the canonical runtime completion contract, or with an equivalent wrapper that enforces the same fields
+- the completion claim is checked with `scripts/check_final_delivery_gate.sh`, whose CLI is the canonical runtime completion contract, or with an equivalent wrapper that enforces the same fields including filename and requested channel handoff state
 
 Delivery destination rules:
 

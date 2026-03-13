@@ -80,3 +80,5 @@ Always report:
 - whether the verified Feishu online document link message or other required handoff payload was sent
 - channel handoff status
 - exact blocker and next manual step if the handoff did not complete
+
+When this handoff is part of the final completion path, pass the channel metadata into `scripts/check_final_delivery_gate.sh` so the canonical completion gate covers the requested message-channel result as well.

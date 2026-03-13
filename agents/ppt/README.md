@@ -1,25 +1,24 @@
-# PPT OpenClaw Agent Workspace Source
+# PPT OpenClaw Agent Workspace
 
-This directory is the source workspace for the PPT OpenClaw agent.
+This directory is the installed OpenClaw workspace for the PPT agent.
+It is not the SlideMax companion application.
 
-It is part of the Git repository source tree.
-It is not the final OpenClaw runtime workspace directory and it is not the SlideMax companion application.
+## Runtime Layout
 
-## Source vs Runtime
+- workspace root: this directory
+- runtime scripts: `scripts/`
+- runtime tests: `tests/`
+- runtime skills: `skills/`
 
-Source paths in this repository:
+## External Dependencies
 
-- repository root: `REPO_DIR`
-- source workspace root: `SOURCE_WORKSPACE_DIR="$REPO_DIR/agents/ppt"`
+- The actual deck generation backend lives in the external SlideMax repository.
+- The final `slidemax_workflow` skill must be installed at `skills/slidemax_workflow`.
+- If `slidemax_workflow` or `SLIDEMAX_DIR` is missing, actual PPT, PPTX, SVG, and rendered deck generation is blocked.
 
-Default runtime installation paths:
+## Runtime Rules
 
-- installed workspace root: `INSTALL_WORKSPACE_DIR="$HOME/.openclaw/workspace-ppt"`
-- installed agent data root: `INSTALL_AGENT_DIR="$HOME/.openclaw/agents/ppt/agent"`
-
-The final `slidemax_workflow` skill must be copy-installed into:
-
-- `INSTALL_WORKSPACE_DIR/skills/slidemax_workflow`
-
-Do not treat this source directory as the final installed runtime workspace.
-Use `../../docs/openclaw-install.md` for installation and update flows.
+- Treat this workspace as the runtime execution home for PPT tasks.
+- Use `AGENTS.md` as the primary workspace contract.
+- Use `TOOLS.md` for runtime-specific tool and delivery notes.
+- Use `scripts/check_final_delivery_gate.sh` before claiming final delivery completion.

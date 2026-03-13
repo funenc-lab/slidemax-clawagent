@@ -102,7 +102,7 @@ If the destination is a Feishu document, upload or publish the final artifact or
 ### 5. Verify the destination state
 
 After delivery, verify at least one of the following:
-After the delivery outcome is known, run `scripts/check_final_delivery_gate.sh` with the artifact path, delivery status, destination details, verification evidence, blocker metadata when applicable, and local-only approval evidence when applicable before claiming completion. The CLI of that script is the canonical runtime completion contract.
+After the delivery outcome is known, run `scripts/check_final_delivery_gate.sh` with the artifact path, artifact filename, delivery status, destination details, verification evidence, blocker metadata when applicable, channel metadata when applicable, and local-only approval evidence when applicable before claiming completion. The CLI of that script is the canonical runtime completion contract.
 
 
 - the destination document was updated

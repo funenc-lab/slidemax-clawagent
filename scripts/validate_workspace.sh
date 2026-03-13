@@ -132,10 +132,33 @@ require_text "$REPO_DIR/docs/openclaw-update.md" 'source_only_repo_paths=(' 'Upd
 require_text "$REPO_DIR/docs/openclaw-update.md" 'preserved_runtime_paths=(' 'Update doc'
 require_text "$REPO_DIR/docs/openclaw-update.md" 'openclaw agents add "$AGENT_ID" --workspace "$INSTALL_WORKSPACE_DIR" --agent-dir "$INSTALL_AGENT_DIR" --non-interactive' 'Update doc'
 
+if grep -Fq '  BOOTSTRAP.md' "$REPO_DIR/docs/openclaw-update.md"; then
+  echo "Update doc must not recreate BOOTSTRAP.md." >&2
+  missing=1
+fi
+
 require_text "$WORKSPACE_DIR/AGENTS.md" 'Select `slidemax-workflow` as the primary skill' 'AGENTS.md'
 require_text "$WORKSPACE_DIR/AGENTS.md" 'Delivery status' 'AGENTS.md'
+require_text "$WORKSPACE_DIR/AGENTS.md" 'Read `IDENTITY.md`' 'AGENTS.md'
 require_text "$WORKSPACE_DIR/TOOLS.md" 'scripts/check_final_delivery_gate.sh' 'TOOLS.md'
+require_text "$WORKSPACE_DIR/TOOLS.md" 'bash tests/test_final_delivery_gate.sh' 'TOOLS.md'
 require_text "$WORKSPACE_DIR/IDENTITY.md" 'Primary Deck Generation Skill: slidemax-workflow' 'IDENTITY.md'
+require_text "$WORKSPACE_DIR/README.md" 'installed OpenClaw workspace' 'README.md'
+
+if grep -Fq 'source workspace for the PPT OpenClaw agent' "$WORKSPACE_DIR/README.md"; then
+  echo "Runtime README.md must not describe the installed workspace as source-only." >&2
+  missing=1
+fi
+
+if grep -Fq 'bash scripts/validate_workspace.sh' "$WORKSPACE_DIR/TOOLS.md"; then
+  echo "Runtime TOOLS.md must not reference repository-only validation commands." >&2
+  missing=1
+fi
+
+if grep -Fq 'bash tests/test_workspace_structure.sh' "$WORKSPACE_DIR/TOOLS.md"; then
+  echo "Runtime TOOLS.md must not reference repository-only structure tests." >&2
+  missing=1
+fi
 
 if [[ "$missing" -ne 0 ]]; then
   exit 1

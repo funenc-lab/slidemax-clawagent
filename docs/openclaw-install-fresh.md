@@ -54,6 +54,7 @@ source_only_repo_paths=(
 Rules:
 
 - overwrite only the managed runtime payload
+- `BOOTSTRAP.md` is first-install only and should not be recreated by later update flows
 - never copy any path listed in `source_only_repo_paths` into `INSTALL_WORKSPACE_DIR`
 - always copy-install `slidemax_workflow` from `SLIDEMAX_DIR/skills/slidemax_workflow`
 

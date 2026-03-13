@@ -14,7 +14,6 @@ This runbook assumes the entry flow in `docs/openclaw-install.md` already comple
 ```bash
 managed_runtime_root_files=(
   AGENTS.md
-  BOOTSTRAP.md
   HEARTBEAT.md
   IDENTITY.md
   README.md
@@ -59,6 +58,7 @@ preserved_runtime_paths=(
 
 Update rules:
 
+- do not recreate `BOOTSTRAP.md` during update; it is a first-install or identity-reset artifact only
 - preserve every path listed in `preserved_runtime_paths`
 - overwrite every path listed in `managed_runtime_root_files`
 - overwrite every path listed in `managed_runtime_scripts`
